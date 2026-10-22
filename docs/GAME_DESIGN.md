@@ -37,3 +37,10 @@ Numbers are proposals, not shipped values.
 
 ## Design safeguards
 No perpetual ambush spam, impossible-to-escape bounty loops or softlocked vanilla quests. Intelligible consequences, player recovery options, world consistency, and performance-first encounter scheduling.
+
+## Criminal economy and ambient adult nightlife (proposed)
+- Fictional bank heists, armored transport robberies, warehouse raids, racketeering and gang-planned criminal operations with abstract planning, security response, consequences, witnesses and discoverable intelligence.
+- Fictional illicit drug distribution networks: dealers, customers, couriers, supply disruptions, territorial competition and police intervention. Avoid real-world manufacturing or trafficking instructions.
+- Adult-only street sex work and nightlife in suitable districts: social routines, contacts, safety, agency, protection/extortion tensions and non-explicit presentation. No sexual violence gameplay or minors.
+- These activities share resources, faction reputation, intelligence, logistics, law-enforcement heat, territory and NPC survival systems. Prioritize atmosphere, choice and systemic consequences over graphic depictions.
+- Treat all additions as design proposals; game engine feasibility and content compatibility require testing.
