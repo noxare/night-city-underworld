@@ -38,3 +38,9 @@ Idempotent event application; stable character identity across respawn/save; sav
 
 ## Feasibility unknowns
 Engine events for hit zones/nonlethal, AI movement/cyberware traversal and surrender, persistent NPC templates, police dispatch, scanner UI extensibility, dynamic vendor pricing and inventory caching, hidden clinic interiors, mission/quest integration.
+
+## Platform strategy (decision 2026-10-22)
+- **Windows x64 is the primary development, integration and release target.** REDengine/CET/Codeware and related tooling will be evaluated and tested against Windows first.
+- A macOS-native port is a later milestone **after a stable playable Windows release**, not a release blocker.
+- Keep domain models, save formats and core decision rules decoupled from Windows-specific game hooks where practical; do not overengineer or maintain an untested macOS game adapter now.
+- Windows in-game verification requires an interactive user session; a background GitHub runner can handle non-graphical checks but should not be assumed to launch graphics/game UI reliably.
