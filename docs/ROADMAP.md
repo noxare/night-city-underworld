@@ -36,3 +36,12 @@ V fights a gang; a named NPC survives and retreats; wounds and faction standing 
 
 ## Definition of done
 Repeatable in-game checks, targeted tests, quest safeguards, reload integrity, spawn cleanup, performance limits, logs, compatibility notes.
+
+## Platform and release decision
+Windows is the exclusive initial gameplay-development and validation target. First achieve a stable, playable Windows version; investigate native macOS support and adapters only afterward as a separate compatibility milestone. Architecture should preserve portability without blocking Windows progress.
+
+### Later milestone: macOS investigation (deferred)
+- [ ] Inventory supported native macOS modding frameworks at that time.
+- [ ] Identify Windows-only hooks and their portable replacements.
+- [ ] Test equivalent save formats and features on a Mac build.
+- [ ] Release a macOS port only after standalone in-game compatibility testing.
