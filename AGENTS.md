@@ -7,3 +7,5 @@ Protect vanilla story-critical quests and actors. Apply strict spawn limits and 
 Only run tests relevant to touched modules, expanding to full integration tests when justified.
 Use small auditable changes/PRs and add tests, docs and reproducibility notes.
 Respect CD PROJEKT RED fan-content policies, license compatibility and third-party assets; no unauthorized copying.
+
+Platform policy: prioritize Windows x64 and a working Cyberpunk 2077 integration. Native macOS porting is deferred until the Windows mod is playable and stable. Keep core rules portable when practical but do not spend development time on speculative macOS engine adapters.
