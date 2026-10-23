@@ -1,0 +1,21 @@
+name: Underworld core tests
+on:
+  push:
+    paths:
+      - 'underworld/**'
+      - 'tests/**'
+      - '.github/workflows/core-tests.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  core:
+    runs-on: [self-hosted, Windows, X64]
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test standalone simulation
+        shell: powershell -NoProfile -ExecutionPolicy Bypass -File {0}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          python -m unittest discover -s tests -v
