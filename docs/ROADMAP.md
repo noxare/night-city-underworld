@@ -127,3 +127,10 @@ Windows is the exclusive initial gameplay-development and validation target. Fir
 - [ ] Preserve five-star/MaxTac extreme threat handling while preventing trivial crimes from generating firefights.
 - [ ] Verify case persistence, district scope, evidence expiry/resolution, save rollback, witness spread and anti-harassment cooldowns.
 - [ ] Research compatibility with NCPD Case Files and other police system mods; do not reuse third-party code without permission.
+
+## Ambient micro-interactions and crosswalk encounters
+- [ ] Inspect REDengine crowd and pedestrian waiting states, ambient dialogue/emotes and available interaction hooks.
+- [ ] Prove two existing pedestrians can converse while waiting at a crosswalk, then resume walking.
+- [ ] Prove a patrol officer can converse peacefully with an existing pedestrian.
+- [ ] Evaluate spatial triggers, dialogue variation, interruption, animation compatibility, path and traffic safety.
+- [ ] Instrument per-zone frequency, spawn-free reuse, event completion/abort, duplication and performance.
