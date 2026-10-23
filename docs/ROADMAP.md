@@ -111,3 +111,10 @@ Windows is the exclusive initial gameplay-development and validation target. Fir
 - [ ] Test peaceful NCPD response, dialogue, warning/fine and escalation guards.
 - [ ] Add negotiation/refusal/dispute/extortion distinctions, anti-spam cooldown and save/load tests.
 - [ ] Explain liability, witness evidence, decisions and payments in the developer dashboard.
+
+## NCPD bribery prototype
+- [ ] Model officer integrity, financial incentives, rank, duty risk and witness/camera evidence.
+- [ ] Prototype peaceful police encounter after nonfatal collision when V remains and complies.
+- [ ] Offer optional bribe dialogue with accept, refuse, report and escalation results.
+- [ ] Verify wallet deduction, officer credit, local heat effects, saved case state and reload idempotency.
+- [ ] Test witness persistence, corruption contacts, blackmail and anti-spam fairness.
