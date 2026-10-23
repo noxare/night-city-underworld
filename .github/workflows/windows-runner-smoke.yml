@@ -143,4 +143,24 @@ jobs:
             }
             break
           }
+
+          foreach ($library in $libraries) {
+            $game = Join-Path $library 'steamapps\common\Cyberpunk 2077'
+            $log = Join-Path $game 'bin\x64\plugins\cyber_engine_tweaks\cyber_engine_tweaks.log'
+            if (-not (Test-Path $log)) { continue }
+            Write-Host '=== CET specific diagnostics ==='
+            $lines = @(Get-Content -LiteralPath $log -Tail 800 -ErrorAction Stop)
+            for ($i = 0; $i -lt $lines.Count; $i++) {
+              if ($lines[$i] -match '(?i)\[error\]|\[warn\]|loaded|initialized|version|failed') {
+                $start = [Math]::Max(0,$i-1)
+                $end = [Math]::Min($lines.Count-1,$i+2)
+                Write-Host ('CET context index ' + $i)
+                for ($j=$start; $j -le $end; $j++) {
+                  $line = $lines[$j] -replace '[A-Za-z]:\\[^ ]+','[PATH]'
+                  Write-Host ('CET-context: ' + $line.Substring(0,[Math]::Min(350,$line.Length)))
+                }
+              }
+            }
+            break
+          }
           Write-Host "Probe complete - no modifications performed"
