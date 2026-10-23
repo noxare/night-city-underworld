@@ -1,0 +1,42 @@
+name: Windows runner smoke test
+on:
+  push:
+    paths:
+      - '.github/workflows/windows-runner-smoke.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  probe:
+    runs-on: [self-hosted, Windows, X64]
+    timeout-minutes: 8
+    steps:
+      - name: Verify environment and safe read access
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          Write-Host "=== Underworld runner check ==="
+          Write-Host ("OS: " + [Environment]::OSVersion.VersionString)
+          Write-Host ("64-bit: " + [Environment]::Is64BitOperatingSystem)
+          Write-Host ("Runner: " + $env:RUNNER_NAME)
+          Write-Host ("User: " + [Environment]::UserName)
+          Write-Host ("Workspace readable: " + (Test-Path $env:GITHUB_WORKSPACE))
+          Write-Host ("Profile readable: " + (Test-Path $env:USERPROFILE))
+          Write-Host ("PowerShell version: " + $PSVersionTable.PSVersion)
+          foreach ($name in @('git','python','py','node','npm','dotnet','cargo','rustc','cmake','code','REDmod','WolvenKit.CLI')) {
+            $cmd = Get-Command $name -ErrorAction SilentlyContinue
+            Write-Host ("Tool " + $name + ": " + [bool]$cmd)
+          }
+          $steam = Get-ItemProperty -Path 'HKCU:\Software\Valve\Steam' -ErrorAction SilentlyContinue
+          Write-Host ("Steam user registry accessible: " + [bool]$steam)
+          if ($steam -and $steam.SteamPath) {
+            Write-Host ("Steam install folder readable: " + (Test-Path $steam.SteamPath))
+          }
+          $candidatePaths = @(
+            'C:\Program Files (x86)\Steam\steamapps\common\Cyberpunk 2077',
+            'C:\Program Files\Steam\steamapps\common\Cyberpunk 2077',
+            'C:\GOG Games\Cyberpunk 2077'
+          )
+          Write-Host ("Cyberpunk in common default locations: " + [bool](@($candidatePaths | Where-Object { Test-Path $_ }).Count))
+          Write-Host ("Repo directory readable: " + (Test-Path (Join-Path $env:GITHUB_WORKSPACE '.git')))
+          Write-Host "Probe complete - no modifications performed"
