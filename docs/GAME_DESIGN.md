@@ -119,3 +119,11 @@ The hunt must be fair: no omniscient tracking or instant teleporting, no chain a
 - NCPD should ideally arrive peacefully for low-severity incidents, issue a fine or warning, gather statements and leave when the situation is resolved. Escalation to threats/arrest/combat is contextual (ongoing violence, drawn weapons, refusal, serious crimes), not automatic.
 - Injured pedestrians can receive medical attention; victims and witnesses remember settlement or misconduct. Payment affects their personal financial ledger and potentially reduces grudges, but does not erase every social consequence.
 - Avoid punitive spam or impossible-to-pay debt spirals: caps, cooldowns, graduated charges, optional accessibility settings and a reasonable opportunity to respond.
+
+## NCPD corruption, bribes and voluntary compliance (decision 2026-10-23)
+- When V causes a road collision involving a pedestrian and **remains on scene without threatening or resisting**, responding NCPD should prefer safe assessment, aid, witness interviews and dialogue where technically feasible; use severity-dependent consequences rather than automatic gunfire.
+- V may attempt a discreet **bribe** as one resolution choice alongside lawful fine/compensation, negotiation and accepting consequences. Bribes are in-game fictional interaction, never guaranteed.
+- Officer decisions depend on individual integrity/corruption, financial pressure, rank, fear of V, witness/camera presence, colleagues, crime severity and available evidence. Officers may accept, refuse, warn, arrest, demand more, report misconduct, or later extort V.
+- If accepted, transfer money from V to an officer's simulated personal ledger, reduce or delay police attention only to the plausible extent of that officer's authority; independent witnesses, recorded evidence and other officers may keep the case alive. A fatality or egregious violence is harder to conceal than a minor collision.
+- Bribery may create persistent social consequences: a corrupt contact, blackmail exposure, internal-affairs investigation, rival officers, gang information leaks, loss of officer's career, or a later request for a favor. Avoid endless automatic extortion; use cooldowns, risk limits and player counterplay.
+- Preserve a nonviolent encounter path and avoid guaranteeing immunity or tying all police encounters to payments.
