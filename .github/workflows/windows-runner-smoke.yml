@@ -61,4 +61,34 @@ jobs:
           Write-Host ("Steam libraries found: " + $libraries.Count)
           Write-Host ("Cyberpunk Steam manifest accessible: " + $manifestFound)
           Write-Host ("Cyberpunk executable readable: " + $exeFound)
+
+          foreach ($library in $libraries) {
+            $game = Join-Path $library 'steamapps\common\Cyberpunk 2077'
+            if (-not (Test-Path (Join-Path $game 'bin\x64\Cyberpunk2077.exe'))) { continue }
+            Write-Host "=== Cyberpunk mod frameworks ==="
+            $checks = [ordered]@{
+              'CET asi' = 'bin\x64\version.dll'
+              'CET directory' = 'bin\x64\plugins\cyber_engine_tweaks'
+              'RED4ext loader' = 'bin\x64\RED4ext.dll'
+              'RED4ext plugins' = 'red4ext\plugins'
+              'redscript scripts' = 'r6\scripts'
+              'ArchiveXL directory' = 'archive\pc\mod'
+              'REDmod tools' = 'tools\redmod'
+              'REDmod mods' = 'mods'
+            }
+            foreach ($k in $checks.Keys) {
+              Write-Host ("Framework check " + $k + ": " + (Test-Path (Join-Path $game $checks[$k])))
+            }
+            $plugins = Join-Path $game 'red4ext\plugins'
+            if (Test-Path $plugins) {
+              $names = @(Get-ChildItem -LiteralPath $plugins -Directory -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Name)
+              Write-Host ("RED4ext plugin directory names: " + ($names -join ', '))
+            }
+            $scripts = Join-Path $game 'r6\scripts'
+            if (Test-Path $scripts) {
+              $names = @(Get-ChildItem -LiteralPath $scripts -Directory -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Name)
+              Write-Host ("redscript directory names: " + ($names -join ', '))
+            }
+            break
+          }
           Write-Host "Probe complete - no modifications performed"
