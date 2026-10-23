@@ -94,3 +94,6 @@ PoliceDirector consumes incidents/witness intel and exposes two independent conc
 
 ## Ambient police event throttling
 Separate ordinary patrol life from explicit player-targeted recognition. Introduce low-priority ambient police scene budgets, per-zone/time cooldowns and a very low baseline stop probability; increase only with case-quality and direct observation, never from raw Street Cred alone. Sample nearby officers opportunistically instead of spawning a dedicated officer just to check V. Log both triggered and suppressed events for dashboard tuning.
+
+## Proximity-based Ambient Interaction Director
+Discover candidates among currently loaded crowd actors within a configurable local annulus around V. Evaluate shared context (crosswalk wait/queue/bus stop/accident), proximity, compatible schedule and AI state, animation/dialogue availability, nav safety, quest guards, density, concurrency cap and cooldown. Prefer native ambient behaviors and gestures; use validated intervention hooks only. Once an interaction is reserved, hold a short-lived pairing token, select a seed-stable micro-scenario, run or gracefully skip, and restore prior behaviors on completion/interruption. Record attempted, rejected and completed interactions for dashboard coverage. Offscreen population does not need physical conversations simulated individually.
