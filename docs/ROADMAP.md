@@ -143,3 +143,11 @@ Windows is the exclusive initial gameplay-development and validation target. Fir
 - [ ] Add Maelstrom Royce/Brick and Clouds/Maiko branch case studies.
 - [ ] Surface effects in vendors, street rumors, NPC daily life, ambient events and development dashboard.
 - [ ] Stress-test 100+ in-game days, avoid runaway inflation/collapse and verify rollback/cross-save safeguards.
+
+## Simulation location independence acceptance checks
+- [ ] Extract platform-neutral deterministic simulation process with no Steam/game/Windows dependency.
+- [ ] Define transport-neutral versioned messages and build loopback + authenticated remote transports.
+- [ ] Test the exact same state/event scenario locally and from a separate machine with identical outcomes.
+- [ ] Implement resilient save-slot isolation, event deduplication, snapshots, reconnect and rollback.
+- [ ] Validate network outages do not block the game and never silently duplicate economic consequences.
+- [ ] Preserve Windows-first integration; assess macOS game bridge independently after core proof. Console full/lite is an optional later feasibility decision.
