@@ -68,3 +68,11 @@ Windows is the exclusive initial gameplay-development and validation target. Fir
 - [ ] Prototype weak enemies recognizing notorious V, fleeing/calling reinforcements and elite faction pursuit.
 - [ ] Add positive recognition from friendly factions and context-sensitive dialogue where supported.
 - [ ] Add cooldowns, hunt limits, player intensity controls and dashboard decision logs; playtest for fun rather than constant punishment.
+
+## Autonomous NPC investigations and hunt consequences
+- [ ] Model HuntCase with motive, clues, budget, persistence, pursuit/abandonment conditions.
+- [ ] Implement information gathering from witnesses, informants, territory contacts and optional netrunning.
+- [ ] Resolve offscreen investigation risks (conflict with allies/rivals, injury, arrest, wasted resources) deterministically.
+- [ ] Add hunter reassessment: continue, escalate, pause, negotiate or give up based on costs and personality.
+- [ ] Surface known hunts and causal traces in developer dashboard and contextual gameplay hints.
+- [ ] Add anti-omniscience, cooldown, player counterplay and protected-quest tests.
