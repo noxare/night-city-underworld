@@ -127,3 +127,14 @@ The hunt must be fair: no omniscient tracking or instant teleporting, no chain a
 - If accepted, transfer money from V to an officer's simulated personal ledger, reduce or delay police attention only to the plausible extent of that officer's authority; independent witnesses, recorded evidence and other officers may keep the case alive. A fatality or egregious violence is harder to conceal than a minor collision.
 - Bribery may create persistent social consequences: a corrupt contact, blackmail exposure, internal-affairs investigation, rival officers, gang information leaks, loss of officer's career, or a later request for a favor. Avoid endless automatic extortion; use cooldowns, risk limits and player counterplay.
 - Preserve a nonviolent encounter path and avoid guaranteeing immunity or tying all police encounters to payments.
+
+## Layered NCPD recognition and investigative heat (2026-10-23)
+Keep vanilla 1–5 star police pursuit as the acute response to immediate dangerous behavior, with MaxTac at maximum heat. Add a **separate persistent investigative layer**, so lower-severity incidents can lead to warnings, fines, questioning and later recognition by patrolling officers rather than instant gunfire.
+- Distinguish current active heat/stars, open incidents/cases, evidence quality, district warrants, confirmed/suspected identity, vehicle description and officer-local recognition.
+- A patrol may notice a wanted vehicle, matching clothing, a clear facial description, or an identified V with an active local case; suspicious observations prompt checking/questioning where possible, not automatic shooting. A different outfit reduces confidence, but not prior biometric or personal knowledge.
+- Escalation depends on severity, compliance, weapons shown, dangerous recent acts, violence, case evidence and officer temperament: observe -> talk -> warning/fine -> attempted detention -> tactical reinforcements -> active lethal pursuit -> MaxTac for extreme ongoing threats.
+- Eyewitnesses, cameras and social reports accumulate credible evidence; anonymous sightings must not magically identify V. Local NCPD knowledge can spread between patrols, subject to communications/time and witness confidence.
+- Escaping line of sight can clear active heat while unresolved cases remain investigable. Case expiry, settlement, corruption, bribes and legal-like dispute paths can change case state without wiping indisputable evidence.
+- Preserve high-intensity police response to spree killings and severe violence; never allow cheap bribes or a quick clothing change to erase a major incident.
+- Offer clear player feedback, low nuisance frequency, player counterplay, patrol recognition cooldowns and story-safe guards.
+- Related third-party mod: NCPD Case Files models persistent investigations, patrol recognition and vehicle warrants. Review compatibility and permission before adopting ideas/code.
