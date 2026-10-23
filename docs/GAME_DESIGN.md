@@ -144,3 +144,12 @@ Keep vanilla 1–5 star police pursuit as the acute response to immediate danger
 - Favor contextual ambient world events: patrol officers conversing with pedestrians, checking vehicles, responding to accidents, mediating disputes, questioning another NPC, processing minor offenses, or departing peacefully. Most occur independently of V.
 - Use low base event probabilities, district and time-of-day weights, cooldowns and spawn/performance limits; keep police presence believable without transforming free roaming into constant interruptions. Serious active crimes remain an exception.
 - Player agency: V may observe, intervene, walk past, help, evade or negotiate. Encounters must not force dialogue merely because V passes nearby.
+
+## Contextual ambient micro-interactions (2026-10-23)
+- Ambient encounters happen in the **player's surrounding world** and should preferentially reuse existing streamed NPCs rather than spawn artificial events directly in view.
+- Nearby pedestrians may begin brief conversations naturally when sharing context: waiting at a crosswalk, sheltering from weather, queueing, watching an incident, sitting together, commuting or recognizing an acquaintance. Some interactions are mundane and don't concern V.
+- Patrol officers can casually speak with pedestrians, give directions, check on wellbeing or discuss an incident without interrogating V.
+- Initiation should require spatial proximity, compatible movement/idle states, a suitable stopping spot, no blocking of sidewalks or crossings, availability of dialogue/gestures and appropriate social context. Walk signals and traffic must continue to work.
+- Short interactions may resolve through greetings, small talk, disagreement, laughter, refusal or simply walking away. Keep conversations sparse, varied, interruptible and not repetitive.
+- Protect performance and quest flows. Participants gracefully return to their previous crowd behavior when dialogue ends, V leaves or danger appears. Do not commandeer quest-critical NPCs.
+- A small fraction of encounters may create information or relationship changes, but most are just ambiance and do not require permanent character promotion.
