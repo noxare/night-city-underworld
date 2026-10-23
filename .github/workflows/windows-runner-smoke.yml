@@ -12,7 +12,7 @@ jobs:
     timeout-minutes: 8
     steps:
       - name: Verify environment and safe read access
-        shell: powershell
+        shell: powershell -NoProfile -ExecutionPolicy Bypass -File {0}
         run: |
           $ErrorActionPreference = 'Stop'
           Write-Host "=== Underworld runner check ==="
