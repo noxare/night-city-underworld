@@ -64,3 +64,14 @@ Night City must feel alive outside player-centric combat. Introduce a **Civilian
 - Event probabilities, per-zone/day quotas, cooldowns, proximity rules, scene slots, global CPU/NPC/vehicle budgets, deterministic seeded event selection and debug traces.
 - Rare incidents should not create constant roadblocks or combat. Provide player settings for event frequency and a disable toggle.
 - Publish causal reasoning (event trigger, eligibility, NPC reactions, police dispatch, cleanup) to the underworld debug event journal/dashboard.
+
+## Street Cred, recognition and calibrated threat response (decision 2026-10-23)
+Separate **vanilla Street Cred (overall fame)** from **faction reputation (standing)**, **personal NPC memory**, and **knowledge propagation**. A highly famous V is not automatically identified by every pedestrian: recognition varies by faction intelligence, witnesses, disguise, district and context.
+
+- At low Street Cred: strangers may underestimate V; ordinary encounters and baseline reinforcements apply.
+- With growing fame: opponents may recognize V, comment, retreat, negotiate, seek cover, call allies or report sightings instead of automatically fighting to the death.
+- Weak opponents against a notorious and demonstrably dangerous V should increasingly choose escape, surrender or **request plausible reinforcement**. Higher-ranking gangs may dispatch better-equipped response teams or recurring nemesis hunters if faction standing is hostile and V has been identified.
+- Famous V with good standing should receive friendly recognition, cautious respect, help or reputation-specific dialogue—not just more ambushes.
+- Street Cred is a modifier, not a hardcoded punishment: faction hostility, NPC courage, witness knowledge, territory strength, recent incidents and current quest context govern the actual behavior.
+- Anti-frustration rules: cooldowns, regional encounter budgets, limits on active hunters, safe periods after major engagements, avoid unavoidable spawns/instant recognition and protect missions. Provide customizable encounter intensity and debug explanations.
+- Use vanilla Street Cred value through a verified engine hook; never assume the exact API until tested. Cache/snapshot changes and ensure compatibility with the game's normal leveling and balance.
