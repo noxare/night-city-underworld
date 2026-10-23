@@ -134,3 +134,12 @@ Windows is the exclusive initial gameplay-development and validation target. Fir
 - [ ] Prove a patrol officer can converse peacefully with an existing pedestrian.
 - [ ] Evaluate spatial triggers, dialogue variation, interruption, animation compatibility, path and traffic safety.
 - [ ] Instrument per-zone frequency, spawn-free reuse, event completion/abort, duplication and performance.
+
+## World Consequence Director — story-to-economy integration
+- [ ] Catalogue major quest choices and safe read-only quest outcome hooks; include Phantom Liberty Hansen and Run This Town Bennett/Jago succession.
+- [ ] Add idempotent QuestOutcome -> ScenarioTrigger mapping with save-slot isolation and quest guard tests.
+- [ ] Model district economic indicators, faction treasuries, supply links, price/stock adjustments, jobs/income, healthcare capacity and stability/recovery.
+- [ ] Prototype Hansen aftermath as a bounded Dogtown case with distinct succession branches; document simulated versus canonical consequences.
+- [ ] Add Maelstrom Royce/Brick and Clouds/Maiko branch case studies.
+- [ ] Surface effects in vendors, street rumors, NPC daily life, ambient events and development dashboard.
+- [ ] Stress-test 100+ in-game days, avoid runaway inflation/collapse and verify rollback/cross-save safeguards.
