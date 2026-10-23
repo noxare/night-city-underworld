@@ -75,3 +75,12 @@ Separate **vanilla Street Cred (overall fame)** from **faction reputation (stand
 - Street Cred is a modifier, not a hardcoded punishment: faction hostility, NPC courage, witness knowledge, territory strength, recent incidents and current quest context govern the actual behavior.
 - Anti-frustration rules: cooldowns, regional encounter budgets, limits on active hunters, safe periods after major engagements, avoid unavoidable spawns/instant recognition and protect missions. Provide customizable encounter intensity and debug explanations.
 - Use vanilla Street Cred value through a verified engine hook; never assume the exact API until tested. Cache/snapshot changes and ensure compatibility with the game's normal leveling and balance.
+
+## Autonomous NPC investigations and manhunts (decision 2026-10-23)
+A hostile NPC or faction does not magically know V's location. Hunters proactively investigate through their own imperfect intelligence networks: questioning contacts and witnesses, investigating last sightings, paying informants, intercepting gang chatter, searching known locations, or hacking when their skills permit. Clues carry confidence, freshness and provenance; hunters may pursue false/outdated leads.
+
+Investigations have gameplay consequences for the hunters, even when V does not witness them: local arguments, damaged relationships with allies or informants, trespassing into rival territory, brawls, gunfire, injury, arrest, loss of resources and trust, or disappearance. Preserve plausible offscreen simulation rather than spawning all actions physically.
+
+NPC personalities, rank, courage, loyalty, obsession, injuries, losses, counterpressure and available resources change their choices. A hunter may pause, negotiate, demand more support, abandon the vendetta, change allegiance, or turn against an overbearing superior. A determined Nemesis may return later with better intelligence.
+
+The hunt must be fair: no omniscient tracking or instant teleporting, no chain attacks without cooldowns, no unavoidable pursuit during guarded quests. V can evade detection, misdirect leads, intimidate or reconcile. Offer ambient hints and dossier entries for discoverable investigations. Ensure a hunt has a traceable cause and possible conclusion.
