@@ -11,6 +11,7 @@ jobs:
     runs-on: [self-hosted, Windows, X64]
     timeout-minutes: 8
     steps:
+      - uses: actions/checkout@v4
       - name: Verify environment and safe read access
         shell: powershell -NoProfile -ExecutionPolicy Bypass -File {0}
         run: |
@@ -39,4 +40,25 @@ jobs:
           )
           Write-Host ("Cyberpunk in common default locations: " + [bool](@($candidatePaths | Where-Object { Test-Path $_ }).Count))
           Write-Host ("Repo directory readable: " + (Test-Path (Join-Path $env:GITHUB_WORKSPACE '.git')))
+
+          $steamRoot = if ($steam -and $steam.SteamPath) { $steam.SteamPath -replace '/', '\' } else { '' }
+          $libraries = @()
+          if ($steamRoot) { $libraries += $steamRoot }
+          $vdf = if ($steamRoot) { Join-Path $steamRoot 'steamapps\libraryfolders.vdf' } else { '' }
+          if ($vdf -and (Test-Path $vdf)) {
+            $vdfText = Get-Content $vdf -Raw
+            foreach ($match in [regex]::Matches($vdfText, '"path"\s+"([^"]+)"')) {
+              $libraries += $match.Groups[1].Value.Replace('\\','\')
+            }
+          }
+          $libraries = @($libraries | Select-Object -Unique)
+          $manifestFound = $false
+          $exeFound = $false
+          foreach ($library in $libraries) {
+            if (Test-Path (Join-Path $library 'steamapps\appmanifest_1091500.acf')) { $manifestFound = $true }
+            if (Test-Path (Join-Path $library 'steamapps\common\Cyberpunk 2077\bin\x64\Cyberpunk2077.exe')) { $exeFound = $true }
+          }
+          Write-Host ("Steam libraries found: " + $libraries.Count)
+          Write-Host ("Cyberpunk Steam manifest accessible: " + $manifestFound)
+          Write-Host ("Cyberpunk executable readable: " + $exeFound)
           Write-Host "Probe complete - no modifications performed"
