@@ -44,3 +44,6 @@ Engine events for hit zones/nonlethal, AI movement/cyberware traversal and surre
 - A macOS-native port is a later milestone **after a stable playable Windows release**, not a release blocker.
 - Keep domain models, save formats and core decision rules decoupled from Windows-specific game hooks where practical; do not overengineer or maintain an untested macOS game adapter now.
 - Windows in-game verification requires an interactive user session; a background GitHub runner can handle non-graphical checks but should not be assumed to launch graphics/game UI reliably.
+
+## Ambient event director
+An independent, budgeted Civilian Life & Street Events director schedules nonviolent life vignettes and rare accidents. For each candidate it evaluates territory, traffic/nav/vehicle conditions, quest guards, nearby events, spawn headroom and probability, then instantiates only within supported REDengine facilities. Treat dialogue, animations, vehicle boarding, arrest and police behavior as separate capabilities with explicit feasibility flags. Report chosen and rejected branches to the developer dashboard. Preserve per-zone cooldowns, priority for peaceful resolution, event cleanup and reproducible random seeds.
