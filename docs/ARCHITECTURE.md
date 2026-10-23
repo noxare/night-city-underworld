@@ -110,3 +110,11 @@ WorldConsequenceDirector applies bounded regional ShockEvents to a district/fact
 - Failure policy: game remains usable without the service; queue only safe idempotent events, bound queue size, reconnect and reconcile, and avoid replaying unsafe actions after a rollback. Host outages and network latency must not freeze rendering or gameplay.
 - Test matrix: same scenario seed/results on Windows/macOS/Linux service runtimes where supported; client bridge and server separate-machine test; disconnection, out-of-order delivery, offline mode and save rollback.
 - Deployment targets and console Lite remain options, not immediate requirements. Build Windows gameplay integration first; architecture must not obstruct a later native macOS game bridge or third-party self-hosting.
+
+## Implementation scope correction: local-first before distributed deployment (2026-10-23)
+This section **supersedes the immediate deployment/remote-network work implied above**, while keeping future portability as a design goal.
+- Phase 0/1: build and run the simulation **locally on the Windows game PC**, as a separate ordinary user process. Avoid Docker, cloud hosting, remote access, service discovery, authentication infrastructure and distributed transport in the MVP.
+- Keep the simulation domain independent from CET/RED4ext/game file paths and isolate all game IO through a minimal adapter. Choose a simple reliable local IPC mechanism; do not build a generalized networking framework yet.
+- Configuration, state/data paths and dependencies must be explicit and portable; avoid gratuitous Windows-specific core APIs. Prefer deterministic simulation and platform-agnostic storage formats.
+- Only when the local game integration is stable and useful: package as Docker or a standalone service, test on Linux/macOS hosts, and consider remote authenticated API transport. These are future milestones, not prerequisites.
+- Do not promise a macOS game bridge or console version, and do not optimize for hypothetical hosting at the expense of playable Windows functionality.
