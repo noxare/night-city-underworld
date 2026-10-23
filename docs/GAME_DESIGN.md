@@ -138,3 +138,9 @@ Keep vanilla 1–5 star police pursuit as the acute response to immediate danger
 - Preserve high-intensity police response to spree killings and severe violence; never allow cheap bribes or a quick clothing change to erase a major incident.
 - Offer clear player feedback, low nuisance frequency, player counterplay, patrol recognition cooldowns and story-safe guards.
 - Related third-party mod: NCPD Case Files models persistent investigations, patrol recognition and vehicle warrants. Review compatibility and permission before adopting ideas/code.
+
+## Rare, ambient policing rather than routine player harassment (2026-10-23)
+- Night City is large: routine checks of V should be **rare**, even with an open minor incident. A known case creates conditional recognition only when the right officer, location, evidence and circumstance converge, not a citywide stop-on-sight loop.
+- Favor contextual ambient world events: patrol officers conversing with pedestrians, checking vehicles, responding to accidents, mediating disputes, questioning another NPC, processing minor offenses, or departing peacefully. Most occur independently of V.
+- Use low base event probabilities, district and time-of-day weights, cooldowns and spawn/performance limits; keep police presence believable without transforming free roaming into constant interruptions. Serious active crimes remain an exception.
+- Player agency: V may observe, intervene, walk past, help, evade or negotiate. Encounters must not force dialogue merely because V passes nearby.
