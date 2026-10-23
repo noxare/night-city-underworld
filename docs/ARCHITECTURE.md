@@ -47,3 +47,6 @@ Engine events for hit zones/nonlethal, AI movement/cyberware traversal and surre
 
 ## Ambient event director
 An independent, budgeted Civilian Life & Street Events director schedules nonviolent life vignettes and rare accidents. For each candidate it evaluates territory, traffic/nav/vehicle conditions, quest guards, nearby events, spawn headroom and probability, then instantiates only within supported REDengine facilities. Treat dialogue, animations, vehicle boarding, arrest and police behavior as separate capabilities with explicit feasibility flags. Report chosen and rejected branches to the developer dashboard. Preserve per-zone cooldowns, priority for peaceful resolution, event cleanup and reproducible random seeds.
+
+## Street Cred integration and threat director
+Treat vanilla Street Cred as a read-only gameplay signal in the core's player profile. Keep separate faction standing and knowledge/recognition. Evaluate reactions using configurable, inspectable factors (fame, reputation, recognition confidence, NPC morale/power, witness alerts, active hunters and current cooldowns). Emit decision traces for flee/ignore/seek reinforcement/escalate to elite pursuit/help. Rate-limit calls for support and hunter assignments and integrate with quest safety and event budgets. Verify Street Cred read access and level-change notifications on Windows in Phase 0.
