@@ -75,3 +75,10 @@ Decision direction: explore a **Windows-local out-of-process simulation service*
 - Persistence: save-slot-specific snapshots, migration, session identifiers, reconnection after process crash, protection from duplicated events/rollback after loading old savegames. Validate load/save coherence.
 - Reliability: bounded stale messages, backpressure, graceful degraded behavior if sidecar is absent, clear installer/opt-in and removal pathway. No network access required.
 - Benchmark IPC latency and spawn/AI interfaces before committing to sidecar architecture; preserve ability to embed compact core logic later if necessary.
+
+## Crowd character promotion and evidence propagation
+- Three entity classes: protected vanilla actors (read-mostly with narrowly validated vendor integrations), anonymous transient crowd actors, and Underworld persistent actors (promoted crowd/managed characters). Ownership boundaries are mandatory.
+- Promotion pipeline: detect significant interaction -> sample stable reconstructible visual/behavior tags -> allocate Underworld character ID -> store seed, encounter record and appearance snapshot -> generate minimally consistent background/social links -> persist -> later materialize with deduplication, safe spawn placement and engine-supported template.
+- Promotion must be idempotent by encounter plus actor/session identity. Engine handles are ephemeral; reconcile entity ownership at stream-out, reload and save rollback.
+- Witness graph: observation record (observer/possible anonymous witness, event, location/time, line of sight or approximation, perpetrator confidence, source reliability) -> dissemination by conversations, comms and faction channels -> recipient knowledge and evolving sentiment. Use witness density as one probability factor, never sole determinant.
+- Log why an identity was promoted, whether visual restoration is supported, who saw what, who learned what and why the resulting reaction occurred. Bound promotion frequency, retained memories and social-graph growth.
