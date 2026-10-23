@@ -54,3 +54,10 @@ Windows is the exclusive initial gameplay-development and validation target. Fir
 - [ ] Investigate NCPD arrival, separation, questioning and arrests; fall back gracefully if engine API is unavailable.
 - [ ] Instrument incident triggers, probabilities, decision factors and cleanup in dashboard.
 - [ ] Validate pedestrian/traffic flow, safe mission guards, performance, cooldowns and settings.
+
+## Confirmed priority decision — Undercity only after core stabilization (2026-10-23)
+- First implement, tune and validate the gameplay mechanics and systemic simulation in the existing Night City world.
+- Expect multiple cycles of in-game playtesting, balancing, performance profiling, bug fixes, save/load verification and compatibility work.
+- Do not start new map or level construction while foundational gameplay systems remain unverified or unstable.
+- **Final optional expansion milestone only:** investigate a modular Undercity (hidden clinics, underground markets, smuggling connections and later connected districts), beginning with a minimal room/nav/lighting proof of concept.
+- The Undercity is explicitly not a dependency or release blocker for the first stable Windows mod.
