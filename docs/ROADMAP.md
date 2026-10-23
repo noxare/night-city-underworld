@@ -61,3 +61,10 @@ Windows is the exclusive initial gameplay-development and validation target. Fir
 - Do not start new map or level construction while foundational gameplay systems remain unverified or unstable.
 - **Final optional expansion milestone only:** investigate a modular Undercity (hidden clinics, underground markets, smuggling connections and later connected districts), beginning with a minimal room/nav/lighting proof of concept.
 - The Undercity is explicitly not a dependency or release blocker for the first stable Windows mod.
+
+## Street Cred and world reactivity
+- [ ] Probe safe read access to vanilla Street Cred and changes over time.
+- [ ] Separate fame, faction standing, actual NPC knowledge and personal relationships in simulation data.
+- [ ] Prototype weak enemies recognizing notorious V, fleeing/calling reinforcements and elite faction pursuit.
+- [ ] Add positive recognition from friendly factions and context-sensitive dialogue where supported.
+- [ ] Add cooldowns, hunt limits, player intensity controls and dashboard decision logs; playtest for fun rather than constant punishment.
