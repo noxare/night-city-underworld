@@ -44,3 +44,23 @@ No perpetual ambush spam, impossible-to-escape bounty loops or softlocked vanill
 - Adult-only street sex work and nightlife in suitable districts: social routines, contacts, safety, agency, protection/extortion tensions and non-explicit presentation. No sexual violence gameplay or minors.
 - These activities share resources, faction reputation, intelligence, logistics, law-enforcement heat, territory and NPC survival systems. Prioritize atmosphere, choice and systemic consequences over graphic depictions.
 - Treat all additions as design proposals; game engine feasibility and content compatibility require testing.
+
+## Ambient life and emergent street incidents (planned, engine feasibility unknown)
+Night City must feel alive outside player-centric combat. Introduce a **Civilian Life & Street Events** director that uses rare contextual ambient encounters rather than perpetual scripted chaos.
+
+### Adult street-worker and client interactions (non-explicit)
+- Adult street-based sex workers can wait, converse with occupants of arriving civilian vehicles, decline/accept an interaction, and optionally board a vehicle that departs. Others remain, change locations, talk among themselves, or leave after a shift.
+- Behavior uses appropriate neighborhoods, schedules, valid vehicle stopping spaces, pedestrian paths, door/seat availability, animations and safety checks. Avoid any sexual depiction, coercive scripting, minors, or objectifying presentation; NPCs retain agency and everyday lives.
+- Conversations should have distinct outcomes (short exchange, disagreement, refusal, agreement, departure), not automatically result in boarding. Make activity believable but non-explicit.
+
+### Rare traffic accidents and social escalation
+- Context-aware low-frequency road incidents. Where actual vehicle collisions cannot be safely orchestrated, use a validated staged aftermath with believable positions and traffic management.
+- After an accident, occupants assess injury and temperament, may exit safely, exchange words or argue, exchange details, return to vehicles and leave, call assistance, start a fistfight, threaten with a weapon, flee, fire, or seek cover. Not every accident is a crime; most end peacefully.
+- Escalations account for personality, existing faction ties, injury, witnesses, social stress and weapons. Multiple branches: one intimidates and the other flees; reciprocal threats; injury; surrender; police separation/arrest when supported.
+- NCPD response includes dispatch, approach, de-escalation, aid, questioning and arrest where engine hooks allow. Avoid assuming generic vanilla police AI supports arrests; prototypes must establish feasibility and scripted alternatives.
+- Despawn and cleanup safely outside player's awareness; handle vehicle obstruction, traffic AI, player interference, mission areas and non-duplicated persistent effects.
+
+### Director fairness and observability
+- Event probabilities, per-zone/day quotas, cooldowns, proximity rules, scene slots, global CPU/NPC/vehicle budgets, deterministic seeded event selection and debug traces.
+- Rare incidents should not create constant roadblocks or combat. Provide player settings for event frequency and a disable toggle.
+- Publish causal reasoning (event trigger, eligibility, NPC reactions, police dispatch, cleanup) to the underworld debug event journal/dashboard.
