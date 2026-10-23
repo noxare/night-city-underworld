@@ -112,3 +112,10 @@ The hunt must be fair: no omniscient tracking or instant teleporting, no chain a
 - Witnesses are modeled explicitly. More plausible nearby witnesses increase the chance of the event being reported, but crowd density is not an automatic omniscient broadcast: sightline, proximity, attention, survival, reliability, fear, allegiances, time and whether V was identified are important.
 - Witness reports may reach police, gangs, friends or family over time, create incomplete or mistaken identity leads, affect reputation, personal grudges, fear and future encounters. Relatives react only to information they learned, possibly through intermediaries. Reports can conflict or remain unresolved.
 - Avoid automatically spawning relatives solely as retaliation; the social graph should allow reconciliation, mourning, investigation and independent choices.
+
+## Civil compensation and proportionate police response (2026-10-23)
+- Nonfatal collisions and minor assaults can lead to victim demands for medical expenses, repairs or compensation, rather than automatic combat. Liability should depend on evidence, injury, witnesses, fault and whether the victim recognizes V.
+- Requests can be paid from V's in-game eddies balance, negotiated, disputed, ignored or handled through an authority/mediator. Distinguish legitimate compensation from attempted extortion or fraud.
+- NCPD should ideally arrive peacefully for low-severity incidents, issue a fine or warning, gather statements and leave when the situation is resolved. Escalation to threats/arrest/combat is contextual (ongoing violence, drawn weapons, refusal, serious crimes), not automatic.
+- Injured pedestrians can receive medical attention; victims and witnesses remember settlement or misconduct. Payment affects their personal financial ledger and potentially reduces grudges, but does not erase every social consequence.
+- Avoid punitive spam or impossible-to-pay debt spirals: caps, cooldowns, graduated charges, optional accessibility settings and a reasonable opportunity to respond.
