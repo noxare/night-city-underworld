@@ -103,3 +103,11 @@ Windows is the exclusive initial gameplay-development and validation target. Fir
 - [ ] Simulate witnesses using crowd density, sightline, recognition uncertainty and dissemination delays.
 - [ ] Verify consequences only reach relatives/friends/factions via learned reports; add replayable dashboard trace.
 - [ ] Test bounded population growth, deduplication and save rollback.
+
+## Civil consequences prototype
+- [ ] Detect nonfatal vehicle collision, distinguish assault/death and gather credible witnesses.
+- [ ] Prototype victim interaction and configurable medical/repair compensation request.
+- [ ] Validate safe in-game eddies debit, transactional idempotency and NPC simulated credit.
+- [ ] Test peaceful NCPD response, dialogue, warning/fine and escalation guards.
+- [ ] Add negotiation/refusal/dispute/extortion distinctions, anti-spam cooldown and save/load tests.
+- [ ] Explain liability, witness evidence, decisions and payments in the developer dashboard.
