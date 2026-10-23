@@ -1,0 +1,46 @@
+name: Cyberpunk launch diagnostics
+on:
+  push:
+    paths: ['.github/workflows/cyberpunk-launch-diagnostics.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  diagnose:
+    runs-on: [self-hosted, Windows, X64]
+    timeout-minutes: 7
+    steps:
+      - name: Read-only launch diagnostics
+        shell: powershell -NoProfile -ExecutionPolicy Bypass -File {0}
+        run: |
+          $ErrorActionPreference='Continue'
+          Write-Host '=== Running processes ==='
+          Get-Process Cyberpunk2077,REDprelauncher,REDlauncher,steam -ErrorAction SilentlyContinue | Select-Object ProcessName,Id,StartTime | Format-Table -AutoSize | Out-String | Write-Host
+          $steam=Get-ItemProperty 'HKCU:\Software\Valve\Steam' -ErrorAction SilentlyContinue
+          $root=($steam.SteamPath -replace '/','\')
+          $libs=@($root)
+          $vdf=Join-Path $root 'steamapps\libraryfolders.vdf'
+          if(Test-Path $vdf){$txt=Get-Content $vdf -Raw;foreach($m in [regex]::Matches($txt,'"path"\s+"([^"]+)"')){$libs+= $m.Groups[1].Value.Replace('\\','\')}}
+          foreach($lib in ($libs|Select-Object -Unique)){
+            $game=Join-Path $lib 'steamapps\common\Cyberpunk 2077'
+            $exe=Join-Path $game 'bin\x64\Cyberpunk2077.exe'
+            if(-not(Test-Path $exe)){continue}
+            Write-Host '=== Game install ==='
+            Write-Host ('Executable version: '+(Get-Item $exe).VersionInfo.FileVersion)
+            Write-Host ('Executable modified: '+(Get-Item $exe).LastWriteTime.ToString('s'))
+            foreach($p in @('bin\x64\version.dll','bin\x64\winmm.dll','bin\x64\RED4ext.dll','red4ext\RED4ext.dll','red4ext\plugins','r6\scripts','tools\redmod')){Write-Host ('File '+$p+': '+(Test-Path (Join-Path $game $p)))}
+            foreach($dir in @('red4ext\logs','red4ext\plugins\Codeware','red4ext\plugins\ArchiveXL','red4ext\plugins\TweakXL','bin\x64\plugins\cyber_engine_tweaks','r6\logs')){
+              $abs=Join-Path $game $dir
+              foreach($log in @(Get-ChildItem $abs -File -Filter '*.log' -ErrorAction SilentlyContinue|Sort-Object LastWriteTime -Descending|Select-Object -First 1)){
+                Write-Host ('=== Log '+$dir+' / '+$log.Name+' '+$log.LastWriteTime.ToString('s')+' ===')
+                $recent=Get-Content $log.FullName -Tail 250 -ErrorAction SilentlyContinue
+                $matches=@($recent|Where-Object {$_ -match '(?i)error|fatal|failed|exception|unknown game version|unsupported|incompatible|loaded|initialized|success'})
+                foreach($line in ($matches|Select-Object -Last 15)){Write-Host (($line -replace '[A-Za-z]:\\[^\s"]+','[PATH]').Substring(0,[math]::Min(300,$line.Length)))}
+              }
+            }
+            break
+          }
+          Write-Host '=== Windows recent app crash events ==='
+          Get-WinEvent -FilterHashtable @{LogName='Application';StartTime=(Get-Date).AddHours(-4);Id=1000,1001,1026} -MaxEvents 35 -ErrorAction SilentlyContinue | Where-Object {$_.Message -match 'Cyberpunk2077|REDlauncher|REDprelauncher|version.dll|RED4ext'} | ForEach-Object {
+            Write-Host ('CrashEvent '+$_.TimeCreated.ToString('s')+' ID='+$_.Id+' '+(($_.Message -replace '\s+',' ').Substring(0,[math]::Min(550,($_.Message -replace '\s+',' ').Length))))
+          }
