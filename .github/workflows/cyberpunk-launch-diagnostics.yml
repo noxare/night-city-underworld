@@ -14,7 +14,7 @@ jobs:
         shell: powershell -NoProfile -ExecutionPolicy Bypass -File {0}
         run: |
           $ErrorActionPreference='Continue'
-          Write-Host '=== Running processes ==='
+          Write-Host '=== Running processes (repeat after CET-disabled test) ==='
           Get-Process Cyberpunk2077,REDprelauncher,REDlauncher,steam -ErrorAction SilentlyContinue | Select-Object ProcessName,Id,StartTime | Format-Table -AutoSize | Out-String | Write-Host
           $steam=Get-ItemProperty 'HKCU:\Software\Valve\Steam' -ErrorAction SilentlyContinue
           $root=($steam.SteamPath -replace '/','\')
