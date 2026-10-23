@@ -119,4 +119,28 @@ jobs:
             }
             break
           }
+
+          foreach ($library in $libraries) {
+            $game = Join-Path $library 'steamapps\common\Cyberpunk 2077'
+            if (-not (Test-Path (Join-Path $game 'bin\x64\Cyberpunk2077.exe'))) { continue }
+            Write-Host '=== Mod startup error summary ==='
+            $logDirs = @('red4ext\logs','red4ext\plugins\Codeware','red4ext\plugins\ArchiveXL','red4ext\plugins\TweakXL','bin\x64\plugins\cyber_engine_tweaks')
+            foreach ($rel in $logDirs) {
+              $dir = Join-Path $game $rel
+              $logs = @(Get-ChildItem $dir -File -Filter '*.log' -ErrorAction SilentlyContinue | Sort-Object LastWriteTime -Descending | Select-Object -First 1)
+              foreach ($log in $logs) {
+                $recent = ((Get-Date) - $log.LastWriteTime).TotalHours -le 24
+                $issues = @()
+                if ($recent) {
+                  $issues = @(Get-Content $log.FullName -Tail 400 -ErrorAction SilentlyContinue | Where-Object { $_ -match '(?i)\b(error|failed|fatal|exception|incompatible|unsupported)\b' } | Select-Object -Last 5)
+                }
+                Write-Host ('Log-summary ' + $rel + ': recent=' + $recent + '; matching lines=' + $issues.Count)
+                foreach ($issue in $issues) {
+                  $safe = $issue -replace '[A-Za-z]:\\[^ ]+','[PATH]' -replace '[a-f0-9]{32,}','[ID]'
+                  Write-Host ('Log-issue ' + $rel + ': ' + $safe.Substring(0,[Math]::Min($safe.Length,240)))
+                }
+              }
+            }
+            break
+          }
           Write-Host "Probe complete - no modifications performed"
