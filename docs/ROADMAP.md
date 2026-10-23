@@ -45,3 +45,12 @@ Windows is the exclusive initial gameplay-development and validation target. Fir
 - [ ] Identify Windows-only hooks and their portable replacements.
 - [ ] Test equivalent save formats and features on a Mac build.
 - [ ] Release a macOS port only after standalone in-game compatibility testing.
+
+## Planned ambient-life milestone (after initial engine feasibility)
+- [ ] Probe civilian vehicle stopping/boarding, seat and pedestrian path control.
+- [ ] Prototype non-explicit adult street-worker / driver conversation with multiple outcomes.
+- [ ] Prototype rare staged road-accident aftermath, exits, dialogue and departure.
+- [ ] Add weighted escalations (discussion, fistfight, threats, flight, shots) and civilian survival consequences.
+- [ ] Investigate NCPD arrival, separation, questioning and arrests; fall back gracefully if engine API is unavailable.
+- [ ] Instrument incident triggers, probabilities, decision factors and cleanup in dashboard.
+- [ ] Validate pedestrian/traffic flow, safe mission guards, performance, cooldowns and settings.
