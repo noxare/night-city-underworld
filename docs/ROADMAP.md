@@ -118,3 +118,12 @@ Windows is the exclusive initial gameplay-development and validation target. Fir
 - [ ] Offer optional bribe dialogue with accept, refuse, report and escalation results.
 - [ ] Verify wallet deduction, officer credit, local heat effects, saved case state and reload idempotency.
 - [ ] Test witness persistence, corruption contacts, blackmail and anti-spam fairness.
+
+## Persistent NCPD case and recognition system
+- [ ] Investigate vanilla wanted-star, PreventionSystem, crime, officer and MaxTac hooks on Windows.
+- [ ] Separate immediate police heat from persistent investigation/case/evidence store.
+- [ ] Prototype recognition by patrol using witnesses, clothing, vehicle and identification certainty.
+- [ ] Prototype nonviolent questioning, fine, compliance and documented escalation paths.
+- [ ] Preserve five-star/MaxTac extreme threat handling while preventing trivial crimes from generating firefights.
+- [ ] Verify case persistence, district scope, evidence expiry/resolution, save rollback, witness spread and anti-harassment cooldowns.
+- [ ] Research compatibility with NCPD Case Files and other police system mods; do not reuse third-party code without permission.
