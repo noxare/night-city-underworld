@@ -93,3 +93,13 @@ Windows is the exclusive initial gameplay-development and validation target. Fir
 - [ ] Prototype V outfit-change effects on witness recognition while preserving facial/cyberware/personal recognition.
 - [ ] Investigate stable dynamic NPC outfit changes and visual persistence across encounters.
 - [ ] Test NPC reactions to perceived social standing, fashion and affiliations with anti-stereotyping and game balance constraints.
+
+## Protected NPC and crowd promotion feasibility
+- [ ] Catalogue protected vanilla/quest actors and safe read-only integration boundaries for ripperdocs/vendors.
+- [ ] Verify visible crowd NPC attributes can be captured and recreated after despawn/load.
+- [ ] Prototype one meaningful crowd encounter (collision, assault or rescue) promoting the actor into a stable simulated identity.
+- [ ] Test generated minimal background and seeded, contradiction-free social links.
+- [ ] Validate injured/nonlethal/dead outcomes and non-resurrection after reload.
+- [ ] Simulate witnesses using crowd density, sightline, recognition uncertainty and dissemination delays.
+- [ ] Verify consequences only reach relatives/friends/factions via learned reports; add replayable dashboard trace.
+- [ ] Test bounded population growth, deduplication and save rollback.
