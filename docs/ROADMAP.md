@@ -151,3 +151,10 @@ Windows is the exclusive initial gameplay-development and validation target. Fir
 - [ ] Implement resilient save-slot isolation, event deduplication, snapshots, reconnect and rollback.
 - [ ] Validate network outages do not block the game and never silently duplicate economic consequences.
 - [ ] Preserve Windows-first integration; assess macOS game bridge independently after core proof. Console full/lite is an optional later feasibility decision.
+
+## Scope gate: local MVP first (overrides early remote-service tasks)
+- [ ] First build a locally running Windows simulation executable and minimal local game event bridge.
+- [ ] Prove a single event roundtrip, durable local save, idempotent replay and game restart.
+- [ ] Extend gameplay features and test performance before adding operational complexity.
+- [ ] Defer Docker image, cross-host hosting, internet API, cloud authentication and multi-platform packaging until after a stable playable MVP.
+- [ ] Revisit portability only with measured integration and operational requirements.
