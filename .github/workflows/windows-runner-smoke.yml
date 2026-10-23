@@ -91,4 +91,32 @@ jobs:
             }
             break
           }
+
+          foreach ($library in $libraries) {
+            $game = Join-Path $library 'steamapps\common\Cyberpunk 2077'
+            if (-not (Test-Path (Join-Path $game 'bin\x64\Cyberpunk2077.exe'))) { continue }
+            Write-Host '=== Startup evidence ==='
+            foreach ($rel in @('bin\x64\RED4ext.dll','bin\x64\version.dll','bin\x64\plugins\cyber_engine_tweaks','red4ext\logs','red4ext\plugins','r6\scripts','r6\cache','tools\redmod')) {
+              Write-Host ('Path ' + $rel + ': ' + (Test-Path (Join-Path $game $rel)))
+            }
+            foreach ($rel in @('red4ext\logs','red4ext','bin\x64\plugins\cyber_engine_tweaks','r6\cache')) {
+              $dir = Join-Path $game $rel
+              if (Test-Path $dir) {
+                Get-ChildItem $dir -File -ErrorAction SilentlyContinue |
+                  Where-Object { $_.Extension -in @('.log','.txt') } |
+                  Sort-Object LastWriteTime -Descending |
+                  Select-Object -First 10 |
+                  ForEach-Object { Write-Host ('Log-file ' + $rel + '/' + $_.Name + '; bytes=' + $_.Length + '; modified=' + $_.LastWriteTime.ToString('s')) }
+              }
+            }
+            foreach ($d in @('red4ext\plugins\Codeware','red4ext\plugins\ArchiveXL','red4ext\plugins\TweakXL')) {
+              $folder = Join-Path $game $d
+              if (Test-Path $folder) {
+                Get-ChildItem $folder -File -ErrorAction SilentlyContinue |
+                  Select-Object -First 10 |
+                  ForEach-Object { Write-Host ('Plugin-file ' + $d + '/' + $_.Name) }
+              }
+            }
+            break
+          }
           Write-Host "Probe complete - no modifications performed"
