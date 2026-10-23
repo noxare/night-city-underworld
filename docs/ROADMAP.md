@@ -76,3 +76,12 @@ Windows is the exclusive initial gameplay-development and validation target. Fir
 - [ ] Add hunter reassessment: continue, escalate, pause, negotiate or give up based on costs and personality.
 - [ ] Surface known hunts and causal traces in developer dashboard and contextual gameplay hints.
 - [ ] Add anti-omniscience, cooldown, player counterplay and protected-quest tests.
+
+## NPC social network, finances and adaptive tactics
+- [ ] Add typed family, friendship, alliance, obligation and hostility links across NPCs and factions.
+- [ ] Model grudges/loyalties spreading from witnessed or learned injuries, betrayals and deaths.
+- [ ] Create persistent NPC and faction budgets, income streams, expenses, debts and auditable transactions.
+- [ ] Gate weapons, cyberware, medical recovery and recruitment by finances, supply and social connections.
+- [ ] Make confrontation style depend on Street Cred, recognition, relative strength, courage, resources and motive.
+- [ ] Simulate weak NPCs seeking support, ambushes or indirect retaliation and stronger NPCs preparing equipment or direct challenges.
+- [ ] Cover economic conservation, relationship causality, power-creep limits, hunter cooldowns and replayable decision traces in tests/dashboard.
