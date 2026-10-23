@@ -85,3 +85,11 @@ Windows is the exclusive initial gameplay-development and validation target. Fir
 - [ ] Make confrontation style depend on Street Cred, recognition, relative strength, courage, resources and motive.
 - [ ] Simulate weak NPCs seeking support, ambushes or indirect retaliation and stronger NPCs preparing equipment or direct challenges.
 - [ ] Cover economic conservation, relationship causality, power-creep limits, hunter cooldowns and replayable decision traces in tests/dashboard.
+
+## Rank, lifestyle and clothing-driven social reactions
+- [ ] Model promotions/demotions, salary and gang-income share by rank, authority and contacts.
+- [ ] Add ordinary consumption, discretionary/luxury purchases, fashion, housing and debt alongside equipment and medical costs.
+- [ ] Model clothing quality, style, condition, affiliations and perceived status separately from actual finances.
+- [ ] Prototype V outfit-change effects on witness recognition while preserving facial/cyberware/personal recognition.
+- [ ] Investigate stable dynamic NPC outfit changes and visual persistence across encounters.
+- [ ] Test NPC reactions to perceived social standing, fashion and affiliations with anti-stereotyping and game balance constraints.
