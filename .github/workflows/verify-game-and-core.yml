@@ -1,0 +1,19 @@
+name: Verify game startup
+on:
+  push:
+    paths: ['.github/workflows/verify-game-and-core.yml']
+  workflow_dispatch:
+jobs:
+  verify:
+    runs-on: [self-hosted, Windows, X64]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check framework logs
+        shell: powershell -NoProfile -ExecutionPolicy Bypass -File {0}
+        run: |
+          $game='H:\SteamLibrary\steamapps\common\Cyberpunk 2077'
+          Write-Host ('Game running: '+[bool](Get-Process Cyberpunk2077 -ErrorAction SilentlyContinue))
+          $since=(Get-Date).AddHours(-2)
+          Get-WinEvent -FilterHashtable @{LogName='Application';Id=1000;StartTime=$since} -ErrorAction SilentlyContinue | Where-Object {$_.Message -match 'Cyberpunk2077.exe'} | ForEach-Object {Write-Host ('Crash at '+$_.TimeCreated)}
+          Get-ChildItem (Join-Path $game 'red4ext') -Filter '*.log' -File -Recurse -ErrorAction SilentlyContinue | Sort-Object LastWriteTime -Descending | Select-Object -First 4 | ForEach-Object {Write-Host ('RED4ext log '+$_.LastWriteTime+' '+$_.Name);Get-Content $_.FullName -Tail 20}
+          python -m unittest discover -s tests -v
