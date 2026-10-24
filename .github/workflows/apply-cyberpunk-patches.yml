@@ -38,7 +38,7 @@ jobs:
           if($plan.Count -eq 0){throw 'No files found'}
           New-Item -ItemType Directory -Path $backupRoot -Force | Out-Null
           Write-Host ('Rollback backups directory: '+$backupRoot)
-          $grouped=$plan|Group-Object archive
+          $grouped=$plan|Group-Object -Property { $_['archive'] }
           foreach($grp in $grouped){
             $archive=[IO.Compression.ZipFile]::OpenRead($grp.Name)
             try{
