@@ -41,3 +41,29 @@ jobs:
             if(Test-Path $file){Write-Host ('Installed '+$relative+' sha256 '+(HashFile $file))}
             else{Write-Host ('Absent '+$relative)}
           }
+
+          Write-Host '===== Direct zip DLL vs installed comparison ====='
+          foreach($module in @('RED4ext','ArchiveXL','Codeware','TweakXL')){
+            $zipFile=Get-ChildItem $downloads -File -Filter '*.zip' | Where-Object {$_.Name -like ('*'+$module+'*2.5 Unofficial*')} | Select-Object -First 1
+            if(-not $zipFile){continue}
+            $archive=[IO.Compression.ZipFile]::OpenRead($zipFile.FullName)
+            try {
+              $entries=@($archive.Entries | Where-Object { $_.FullName -match '(?i)\.dll$' })
+              foreach($entry in $entries){
+                $relative=$entry.FullName.Replace('/','\')
+                $target=Join-Path $game $relative
+                $temp=Join-Path $env:TEMP ([Guid]::NewGuid().ToString()+'.dll')
+                try{
+                  $source=$entry.Open()
+                  try {$dest=[IO.File]::Create($temp);try{$source.CopyTo($dest)}finally{$dest.Dispose()}}finally{$source.Dispose()}
+                  $archiveHash=HashFile $temp
+                  $installedHash=if(Test-Path $target){HashFile $target}else{'ABSENT'}
+                  Write-Host ('Match '+$module+' '+$relative+' = '+($archiveHash -eq $installedHash)+' archive='+$archiveHash+' installed='+$installedHash)
+                  if($relative -like 'red4ext\plugins\*'){
+                    $disabled=$target.Replace('red4ext\plugins\','red4ext\plugins.disabled\')
+                    if(Test-Path $disabled){ Write-Host ('  Disabled-folder match: '+($archiveHash -eq (HashFile $disabled))) }
+                  }
+                } finally {if(Test-Path $temp){Remove-Item -LiteralPath $temp -Force}}
+              }
+            } finally {$archive.Dispose()}
+          }
