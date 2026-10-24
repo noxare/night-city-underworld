@@ -15,6 +15,7 @@ jobs:
         run: |
           $ErrorActionPreference='Stop'
           Add-Type -AssemblyName System.IO.Compression.FileSystem
+          function HashFile($p) { $h=[System.Security.Cryptography.SHA256]::Create(); try { $s=[IO.File]::OpenRead($p); try { return [BitConverter]::ToString($h.ComputeHash($s)).Replace('-','') } finally { $s.Dispose() } } finally { $h.Dispose() } }
           $game='H:\SteamLibrary\steamapps\common\Cyberpunk 2077'
           $downloads=Join-Path $env:USERPROFILE 'Downloads'
           Write-Host ('Game running: '+[bool](Get-Process Cyberpunk2077 -ErrorAction SilentlyContinue))
@@ -23,7 +24,7 @@ jobs:
             $zipFiles=@(Get-ChildItem $downloads -File -Filter '*.zip' | Where-Object {$_.Name -like ('*'+$module+'*2.5 Unofficial*')})
             Write-Host ('Matching package count: '+$zipFiles.Count)
             foreach($file in $zipFiles){
-              Write-Host ('Package '+$file.Name+' sha256 '+(Get-FileHash -LiteralPath $file.FullName -Algorithm SHA256).Hash)
+              Write-Host ('Package '+$file.Name+' sha256 '+(HashFile $file.FullName))
               $zip=[IO.Compression.ZipFile]::OpenRead($file.FullName)
               try{
                 foreach($entry in $zip.Entries){
@@ -37,6 +38,6 @@ jobs:
           Write-Host '===== Installed framework DLL hashes ====='
           foreach($relative in @('bin\x64\winmm.dll','bin\x64\version.dll','red4ext\plugins\ArchiveXL\ArchiveXL.dll','red4ext\plugins.disabled\ArchiveXL\ArchiveXL.dll','red4ext\plugins\Codeware\Codeware.dll','red4ext\plugins.disabled\Codeware\Codeware.dll','red4ext\plugins\TweakXL\TweakXL.dll','red4ext\plugins.disabled\TweakXL\TweakXL.dll')){
             $file=Join-Path $game $relative
-            if(Test-Path $file){Write-Host ('Installed '+$relative+' sha256 '+(Get-FileHash -LiteralPath $file -Algorithm SHA256).Hash)}
+            if(Test-Path $file){Write-Host ('Installed '+$relative+' sha256 '+(HashFile $file))}
             else{Write-Host ('Absent '+$relative)}
           }
