@@ -11,7 +11,7 @@ jobs:
     timeout-minutes: 10
     steps:
       - name: Compare downloaded patched archives against installed DLL files
-        shell: powershell
+        shell: powershell -NoProfile -ExecutionPolicy Bypass -File {0}
         run: |
           $ErrorActionPreference='Stop'
           Add-Type -AssemblyName System.IO.Compression.FileSystem
