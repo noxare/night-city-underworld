@@ -1,0 +1,60 @@
+name: Apply missing Cyberpunk 2.5 patches
+on:
+  push:
+    paths: ['.github/workflows/apply-cyberpunk-patches.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  install:
+    runs-on: [self-hosted, Windows, X64]
+    timeout-minutes: 10
+    steps:
+      - name: Safely stage patched Codeware and TweakXL
+        shell: powershell -NoProfile -ExecutionPolicy Bypass -File {0}
+        run: |
+          $ErrorActionPreference='Stop'
+          if(Get-Process Cyberpunk2077 -ErrorAction SilentlyContinue){throw 'Cyberpunk is running. Refusing to modify its files.'}
+          Add-Type -AssemblyName System.IO.Compression.FileSystem
+          $game='H:\SteamLibrary\steamapps\common\Cyberpunk 2077'
+          $downloads=Join-Path $env:USERPROFILE 'Downloads'
+          if(-not (Test-Path (Join-Path $game 'bin\x64\Cyberpunk2077.exe'))){throw 'Game folder missing'}
+          $backupRoot=Join-Path $env:USERPROFILE ('Documents\Underworld-ModBackups\'+(Get-Date -Format 'yyyyMMdd-HHmmss'))
+          $plan=@()
+          foreach($module in @('Codeware','TweakXL')){
+            $files=@(Get-ChildItem $downloads -File -Filter '*.zip' | Where-Object {$_.Name -like ('*'+$module+'*2.5 Unofficial*')})
+            if($files.Count -ne 1){throw ('Expected exactly one unofficial package for '+$module)}
+            $archive=[IO.Compression.ZipFile]::OpenRead($files[0].FullName)
+            try {
+              foreach($e in $archive.Entries){
+                if([string]::IsNullOrEmpty($e.Name)){continue}
+                $p=$e.FullName.Replace('/','\')
+                if(-not $p.StartsWith(('red4ext\plugins\'+$module+'\'),[System.StringComparison]::OrdinalIgnoreCase)){throw ('Unexpected archive entry '+$p)}
+                if($p -match '\.\.' -or [IO.Path]::IsPathRooted($p)){throw ('Unsafe archive entry '+$p)}
+                $plan+=@{module=$module;archive=$files[0].FullName;entry=$e.FullName;relative=$p}
+              }
+            }finally{$archive.Dispose()}
+          }
+          if($plan.Count -eq 0){throw 'No files found'}
+          New-Item -ItemType Directory -Path $backupRoot -Force | Out-Null
+          Write-Host ('Rollback backups directory: '+$backupRoot)
+          $grouped=$plan|Group-Object archive
+          foreach($grp in $grouped){
+            $archive=[IO.Compression.ZipFile]::OpenRead($grp.Name)
+            try{
+              foreach($item in $grp.Group){
+                $dst=Join-Path $game $item.relative
+                if(Test-Path $dst){
+                  $bk=Join-Path $backupRoot $item.relative
+                  New-Item -ItemType Directory -Path (Split-Path $bk) -Force | Out-Null
+                  Copy-Item -LiteralPath $dst -Destination $bk -Force
+                }
+                New-Item -ItemType Directory -Path (Split-Path $dst) -Force | Out-Null
+                $entry=$archive.GetEntry($item.entry)
+                $in=$entry.Open()
+                try{$out=[IO.File]::Create($dst);try{$in.CopyTo($out)}finally{$out.Dispose()}}finally{$in.Dispose()}
+                Write-Host ('Installed '+$item.relative+' bytes='+$entry.Length)
+              }
+            }finally{$archive.Dispose()}
+          }
+          Write-Host 'Patched plugin files staged; CET remains disabled. Game was not launched.'
