@@ -1,0 +1,42 @@
+name: Post patch Cyberpunk diagnostics
+on:
+  push:
+    paths: ['.github/workflows/post-patch-diagnostics.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: [self-hosted, Windows, X64]
+    timeout-minutes: 8
+    steps:
+      - name: Inspect recent game startup evidence
+        shell: powershell -NoProfile -ExecutionPolicy Bypass -File {0}
+        run: |
+          $ErrorActionPreference='Continue'
+          $game='H:\SteamLibrary\steamapps\common\Cyberpunk 2077'
+          $threshold=[datetime]'2026-10-24T16:50:20'
+          Write-Host ('Game process running: '+[bool](Get-Process Cyberpunk2077 -ErrorAction SilentlyContinue))
+          Write-Host '=== Windows application crash events since patch installation ==='
+          Get-WinEvent -FilterHashtable @{LogName='Application';StartTime=$threshold;Id=1000} -MaxEvents 100 -ErrorAction SilentlyContinue |
+            Where-Object {$_.Message -match 'Cyberpunk2077.exe'} |
+            Select-Object -First 10 |
+            ForEach-Object {Write-Host ('Crash '+$_.TimeCreated.ToString('s')+' '+(($($_.Message) -split '[\r\n]') | Where-Object {$_ -match 'Ausnahmecode|Exception code|Fehlerhafter Modulname|Faulting module name' } | Select-Object -First 4) -join ' | ')}
+          Write-Host '=== Recent RED4ext logs ==='
+          foreach($dir in @('red4ext\logs','red4ext','bin\x64\plugins\cyber_engine_tweaks')){
+            $p=Join-Path $game $dir
+            if(Test-Path $p){
+              Get-ChildItem $p -File -Filter '*.log' -Recurse -ErrorAction SilentlyContinue |
+                Where-Object {$_.LastWriteTime -ge $threshold} | Sort-Object LastWriteTime -Descending | Select-Object -First 8 |
+                ForEach-Object {
+                  Write-Host ('Log '+$_.FullName+' modified='+$_.LastWriteTime.ToString('s'))
+                  Get-Content $_.FullName -Tail 18 -ErrorAction SilentlyContinue |
+                    Where-Object {$_ -match '(?i)plugin|error|fail|crash|shut|initialized|started'} | Select-Object -Last 8 | ForEach-Object {Write-Host ('  '+$_)}
+                }
+            }
+          }
+          Write-Host '=== Currently active framework DLLs ==='
+          foreach($m in @('ArchiveXL','Codeware','TweakXL')){
+            $p=Join-Path $game ('red4ext\plugins\'+$m+'\'+$m+'.dll')
+            Write-Host ($m+' active: '+(Test-Path $p))
+          }
