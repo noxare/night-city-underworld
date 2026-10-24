@@ -1,0 +1,49 @@
+name: Enable CET and inspect Graphify
+on:
+  push:
+    paths: ['.github/workflows/enable-cet-and-check-graph.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: [self-hosted, Windows, X64]
+    timeout-minutes: 5
+    steps:
+      - name: Enable CET and inspect local Graphify outputs
+        shell: powershell -NoProfile -ExecutionPolicy Bypass -File {0}
+        run: |
+          $ErrorActionPreference='Stop'
+          $game='H:\SteamLibrary\steamapps\common\Cyberpunk 2077\bin\x64'
+          $active=Join-Path $game 'version.dll'
+          $disabled=Join-Path $game 'version.dll.disabled'
+          if(Get-Process Cyberpunk2077 -ErrorAction SilentlyContinue) {
+            Write-Host 'Game running: CET files not changed'
+          } elseif(Test-Path $active) {
+            Write-Host 'CET loader: already enabled'
+          } elseif(Test-Path $disabled) {
+            $backup=Join-Path $env:USERPROFILE ('Documents\Underworld-ModBackups\cet-'+(Get-Date -Format 'yyyyMMdd-HHmmss'))
+            New-Item -Path $backup -ItemType Directory -Force | Out-Null
+            Copy-Item -LiteralPath $disabled -Destination (Join-Path $backup 'version.dll.disabled')
+            Move-Item -LiteralPath $disabled -Destination $active
+            Write-Host ('CET enabled: '+(Test-Path $active))
+            Write-Host ('CET backup created: '+$backup)
+          } else {
+            Write-Host 'CET DLL missing in both locations; no changes'
+          }
+          Write-Host '=== Graphify ==='
+          $project=Join-Path $env:USERPROFILE 'Projects\night-city-underworld'
+          Write-Host ('Project exists: '+(Test-Path $project))
+          if(Test-Path $project){
+            Get-ChildItem -LiteralPath $project -Recurse -File -ErrorAction SilentlyContinue |
+              Where-Object { $_.FullName -match 'graphify|GRAPH_REPORT|graph\.json|graph\.html' -and $_.FullName -notmatch '\\.git\\' } |
+              Select-Object -First 25 |
+              ForEach-Object {Write-Host ('Graphify file: '+$_.FullName+' modified='+$_.LastWriteTime.ToString('s'))}
+          }
+          foreach($file in @((Join-Path $project 'AGENTS.md'),(Join-Path $project 'docs\DEVELOPMENT_STATUS.md'))){
+            if(Test-Path $file){
+              Write-Host ('Guidance '+$file)
+              Select-String -LiteralPath $file -Pattern 'Graphify|graphify|graph' |
+                Select-Object -First 8 | ForEach-Object {Write-Host ('  '+$_.Line.Trim())}
+            }
+          }
