@@ -1,0 +1,42 @@
+name: Audit Cyberpunk 2.5 Fix Packages
+on:
+  push:
+    paths: ['.github/workflows/fix-package-audit.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  audit:
+    runs-on: [self-hosted, Windows, X64]
+    timeout-minutes: 10
+    steps:
+      - name: Compare downloaded patched archives against installed DLL files
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          Add-Type -AssemblyName System.IO.Compression.FileSystem
+          $game='H:\SteamLibrary\steamapps\common\Cyberpunk 2077'
+          $downloads=Join-Path $env:USERPROFILE 'Downloads'
+          Write-Host ('Game running: '+[bool](Get-Process Cyberpunk2077 -ErrorAction SilentlyContinue))
+          foreach($module in @('RED4ext','ArchiveXL','Codeware','TweakXL')){
+            Write-Host ('===== '+$module+' =====')
+            $zipFiles=@(Get-ChildItem $downloads -File -Filter '*.zip' | Where-Object {$_.Name -like ('*'+$module+'*2.5 Unofficial*')})
+            Write-Host ('Matching package count: '+$zipFiles.Count)
+            foreach($file in $zipFiles){
+              Write-Host ('Package '+$file.Name+' sha256 '+(Get-FileHash -LiteralPath $file.FullName -Algorithm SHA256).Hash)
+              $zip=[IO.Compression.ZipFile]::OpenRead($file.FullName)
+              try{
+                foreach($entry in $zip.Entries){
+                  if($entry.FullName -match '(?i)\.dll$|\.asi$|winmm|readme|\.txt$'){
+                    Write-Host ('  ZIP '+$entry.FullName+' size='+$entry.Length)
+                  }
+                }
+              } finally {$zip.Dispose()}
+            }
+          }
+          Write-Host '===== Installed framework DLL hashes ====='
+          foreach($relative in @('bin\x64\winmm.dll','bin\x64\version.dll','red4ext\plugins\ArchiveXL\ArchiveXL.dll','red4ext\plugins.disabled\ArchiveXL\ArchiveXL.dll','red4ext\plugins\Codeware\Codeware.dll','red4ext\plugins.disabled\Codeware\Codeware.dll','red4ext\plugins\TweakXL\TweakXL.dll','red4ext\plugins.disabled\TweakXL\TweakXL.dll')){
+            $file=Join-Path $game $relative
+            if(Test-Path $file){Write-Host ('Installed '+$relative+' sha256 '+(Get-FileHash -LiteralPath $file -Algorithm SHA256).Hash)}
+            else{Write-Host ('Absent '+$relative)}
+          }
