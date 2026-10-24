@@ -1,0 +1,77 @@
+name: Underworld Codex recovery
+on:
+  push:
+    paths: ['.github/workflows/underworld-recovery.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  recover:
+    runs-on: [self-hosted, Windows, X64]
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Inspect previous local diagnostics
+        shell: powershell -NoProfile -ExecutionPolicy Bypass -File {0}
+        run: |
+          $ErrorActionPreference='Continue'
+          Write-Host '=== Local source ==='
+          $project=Join-Path $env:USERPROFILE 'Projects\night-city-underworld'
+          Write-Host ('Local project exists: '+(Test-Path $project))
+          if(Test-Path (Join-Path $project '.git')){
+            git -C $project status --short
+            git -C $project log -3 --oneline
+          }
+          Write-Host '=== Existing diagnosis artifacts ==='
+          foreach($base in @($project, $env:GITHUB_WORKSPACE)){
+            foreach($relative in @('graphify-out\GRAPH_REPORT.md','docs\DEVELOPMENT_STATUS.md','.agents\skills\underworld-game-test\SKILL.md')){
+              $p=Join-Path $base $relative
+              Write-Host ('Artifact '+$relative+': '+(Test-Path $p))
+            }
+          }
+          Write-Host '=== Installed tools ==='
+          foreach($n in @('codex','graphify','git','python')){Write-Host ('Tool '+$n+': '+[bool](Get-Command $n -ErrorAction SilentlyContinue))}
+          Write-Host '=== Relevant recent files (names only) ==='
+          foreach($dir in @((Join-Path $env:USERPROFILE '.codex'), $project)){
+            if(Test-Path $dir){
+              Get-ChildItem $dir -File -Recurse -ErrorAction SilentlyContinue |
+                Where-Object { $_.LastWriteTime -gt (Get-Date).AddDays(-3) -and $_.FullName -notmatch '\\.git\\|\\_work\\|\\node_modules\\' -and $_.Extension -in @('.md','.log','.txt','.jsonl') } |
+                Sort-Object LastWriteTime -Descending | Select-Object -First 15 |
+                ForEach-Object { Write-Host ('Recent '+$_.LastWriteTime.ToString('s')+' '+$_.Name) }
+            }
+          }
+          Write-Host '=== Current mod setup ==='
+          $game='H:\SteamLibrary\steamapps\common\Cyberpunk 2077'
+          foreach($p in @('bin\x64\version.dll','bin\x64\version.dll.disabled','bin\x64\winmm.dll','bin\x64\winmm.dll.disabled','red4ext\plugins','red4ext\plugins.disabled')){
+            Write-Host ('Mod '+$p+': '+(Test-Path (Join-Path $game $p)))
+          }
+          foreach($dir in @('red4ext\plugins','red4ext\plugins.disabled')){
+            $p=Join-Path $game $dir
+            if(Test-Path $p){Write-Host ('Plugins in '+$dir+': '+((@(Get-ChildItem $p -Directory | Select-Object -ExpandProperty Name)) -join ', '))}
+          }
+          Write-Host '=== Crash timestamps ==='
+          Get-WinEvent -FilterHashtable @{LogName='Application';StartTime=(Get-Date).AddDays(-2);Id=1000} -MaxEvents 50 -ErrorAction SilentlyContinue |
+            Where-Object { $_.Message -match 'Cyberpunk2077.exe' } |
+            Select-Object -First 5 | ForEach-Object {Write-Host ('Crash '+$_.TimeCreated.ToString('s')+' '+($_.Message -match '0xc0000005'))}
+      - name: Give Codex a read-only recovery task
+        shell: powershell -NoProfile -ExecutionPolicy Bypass -File {0}
+        continue-on-error: true
+        run: |
+          $ErrorActionPreference='Continue'
+          $prompt=@'
+          You are investigating Cyberpunk 2077 2.5 launch crashes on the Windows gaming machine for the GitHub repo noxare/night-city-underworld.
+          IMPORTANT: You have no memory of previous chat. Reconstruct from repository documents, recent local diagnosis notes, logs and Windows event records.
+          Verified earlier:
+          - Cyberpunk started with both CET and RED4ext disabled.
+          - Cyberpunk started with RED4ext enabled but all RED4ext plugins disabled.
+          - CET disabled alone did NOT fix crash.
+          - Previous crash event was 0xc0000005, module unknown.
+          - RED4ext plugins are ArchiveXL, Codeware, TweakXL.
+          - Latest probe detected CET version.dll.disabled, RED4ext winmm.dll enabled, ArchiveXL both active and disabled copies.
+          - The user reports you attempted diagnosis yesterday and had further debug information. Look for local project notes, safe Codex session records, game logs and crash events.
+          - User authorized stabilizing and rerunning diagnosis, but this invocation is READ-ONLY. Do not modify, rename or delete game files, saves, Steam settings or running processes. Do not start the game. Do not expose auth tokens, environment secrets, or private conversation contents.
+          Produce a concise technical report: newest evidence, root cause ranking, exact next reversible test, needed compatibility checks, and how to confirm main menu reached. Do not invent results. If tools unavailable, say so.
+          '@
+          Set-Location $env:GITHUB_WORKSPACE
+          codex exec --sandbox read-only --skip-git-repo-check $prompt
+          if($LASTEXITCODE -ne 0){Write-Host ('Codex invocation did not complete; exit='+$LASTEXITCODE)}
