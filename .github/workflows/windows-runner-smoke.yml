@@ -163,4 +163,35 @@ jobs:
             }
             break
           }
+
+          Write-Host '=== Current development tool availability ==='
+          foreach($n in @('codex','graphify','uv','python','git')){
+            $cmd=Get-Command $n -ErrorAction SilentlyContinue
+            Write-Host ('Executable '+$n+': '+[bool]$cmd)
+            if($cmd){Write-Host ('Executable-source '+$n+': '+$cmd.Source)}
+          }
+          Write-Host '=== Mod isolation state ==='
+          foreach($library in $libraries){
+            $game=Join-Path $library 'steamapps\common\Cyberpunk 2077'
+            if(-not(Test-Path (Join-Path $game 'bin\x64\Cyberpunk2077.exe'))){continue}
+            foreach($p in @('bin\x64\version.dll','bin\x64\version.dll.disabled','bin\x64\winmm.dll','bin\x64\winmm.dll.disabled','red4ext\plugins','red4ext\plugins.disabled')){
+              Write-Host ('Mod-state '+$p+': '+(Test-Path (Join-Path $game $p)))
+            }
+            foreach($d in @('red4ext\plugins','red4ext\plugins.disabled')){
+              $folder=Join-Path $game $d
+              if(Test-Path $folder){
+                Write-Host ('Mod-directory '+$d+' includes: '+((@(Get-ChildItem -LiteralPath $folder -Directory -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Name)) -join ', '))
+              }
+            }
+            break
+          }
+          Write-Host '=== Existing Underworld graph artifacts ==='
+          foreach($p in @('graphify-out','graphify-out\GRAPH_REPORT.md','.agents\skills','underworld','tests')){
+            Write-Host ('Repo-state '+$p+': '+(Test-Path (Join-Path $env:GITHUB_WORKSPACE $p)))
+          }
+          Write-Host '=== Underworld unit tests ==='
+          Push-Location $env:GITHUB_WORKSPACE
+          python -m unittest discover -s tests -v
+          if($LASTEXITCODE -ne 0){throw "Underworld unit tests failed"}
+          Pop-Location
           Write-Host "Probe complete - no modifications performed"
