@@ -3,6 +3,7 @@ import json
 import sqlite3
 import tempfile
 import unittest
+from contextlib import closing
 from pathlib import Path
 
 from underworld.bridge import LocalBridge, MAX_MESSAGE_BYTES, serve
@@ -94,9 +95,9 @@ class BridgeTest(unittest.TestCase):
     def test_future_schema_is_rejected_without_downgrade(self):
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "future.db"
-            with sqlite3.connect(path) as connection:
+            with closing(sqlite3.connect(path)) as connection:
                 connection.execute("PRAGMA user_version=99")
             with self.assertRaises(ValueError):
                 WorldStore(path)
-            with sqlite3.connect(path) as connection:
+            with closing(sqlite3.connect(path)) as connection:
                 self.assertEqual(connection.execute("PRAGMA user_version").fetchone()[0], 99)
