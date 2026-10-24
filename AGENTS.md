@@ -1,6 +1,7 @@
 # Night City: Underworld — Development rules
 
 Read README.md and docs/{ARCHITECTURE,GAME_DESIGN,ROADMAP}.md before modifications.
+Use docs/PLAYBOOKS.md for resume, model routing, crash diagnostics and handoff. Delegate bounded routine tasks to a smaller available model when supported; keep architecture, engine hooks, persistence/rollback and final review with the main model. Record actual model use and never claim an unverified local worker is available.
 Do not claim any engine feature works without an in-game test; distinguish design, code and verified implementation.
 Separate deterministic simulation from REDengine adapters. Use save schema versions and idempotent events.
 Protect vanilla story-critical quests and actors. Apply strict spawn limits and cleanup.

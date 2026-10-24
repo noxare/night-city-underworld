@@ -57,3 +57,12 @@ The GitHub Windows runner verified that the downloaded unofficial RED4ext and Ar
 
 ## 2026-10-24 first post-patch launch evidence
 Workflow https://github.com/noxare/night-city-underworld/actions/runs/40104886627 inspected game launch at 16:57 local: RED4ext initialized, loaded ArchiveXL, Codeware and TweakXL (3 plugins), and unloaded all three on orderly shutdown about 50 seconds later. Two Python unit tests passed. CET was previously re-enabled, but its overlay functionality and a visually responsive main menu have not been directly confirmed in this run. Next work: verify CET Lua execution and implement first minimal in-game event bridge, protecting vanilla logic. Avoid reporting success of CET without its own log/test.
+
+## 2026-10-24 Work: local bridge and development playbooks
+
+- Added `underworld/bridge.py`: explicit slot/timeline binding, protocol v1 JSONL stdin/stdout, bounded messages, duplicate acknowledgement and conflicting-event rejection. No CET/game hooks yet.
+- Store now marks schema version 1, preserves prototype schema-0 event records and rejects newer database schemas.
+- Local verification: `python3 -m unittest discover -s tests -v` passed all 10 tests. Separate subprocess smoke verified an event stays at reputation 15 after process restart and duplicate replay. Windows CI result must be checked separately.
+- `docs/PLAYBOOKS.md` defines small-model routing, escalation, crash diagnosis, scoped verification and handoff. A smaller model drafted the playbooks; the main model reviewed them and implemented the protocol/persistence work.
+- `docs/LOCAL_BRIDGE.md` documents runnable commands and limits. Timeline isolation is not game-save rollback: new timelines start empty, and automatic campaign integration is explicitly deferred.
+- Next: verify CET Lua execution in interactive Windows; inspect current primary CET APIs; implement bounded nonblocking game transport and synthetic event roundtrip, then reconcile save/load snapshots before enabling real gameplay writes.
