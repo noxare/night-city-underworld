@@ -1,5 +1,14 @@
 # Development and crash recovery status
 
+## 2026-10-25 bundled NPC observation implementation
+
+- User verified the earlier CET-to-Python event path and shipment/clinic chain in the dashboard. Earlier entries below saying no CET acknowledgement was confirmed are historical.
+- GUI build 0.0.3 adds opt-in read-only target/hit observation; wire protocol remains 0.0.2. Safe target cleanup and bounded raw collider telemetry are integrated without AI/animation mutations.
+- Worker ingests observations into a separate versioned SQLite database, with session-only identity, validation, deduplication, stale rejection and source/receipt timestamps. Dashboard 0.2.0 displays actual session observations separately from synthetic contacts.
+- Injury reducer implements replay/context/provenance guards, treatment and explicit death outcomes. It does not infer body zones from generic damage or apply animation intents. No persistent limp capability has been proved yet.
+- Local targeted tests passed across injuries, NPC Lua probe, observations, dashboard, existing bridge integration and installer. Windows CI and runtime deployment are verified separately; no user micro-step acceptance requested.
+
+
 ## Bridge 0.0.2 Windows deployment receipt
 
 - PR #4 merged. Windows CI: 20 tests passed, 2 explicit system-Lua skips. Real Lua-client-to-Python/SQLite integration passed separately on the development host.

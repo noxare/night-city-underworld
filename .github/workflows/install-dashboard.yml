@@ -2,7 +2,7 @@ name: Install local developer dashboard
 on:
   push:
     branches: [main]
-    paths: ['underworld/dashboard.py','scripts/start_dashboard.py','.github/workflows/install-dashboard.yml']
+    paths: ['underworld/dashboard.py','underworld/observations.py','scripts/start_dashboard.py','.github/workflows/install-dashboard.yml']
   workflow_dispatch:
 permissions:
   contents: read
@@ -22,7 +22,15 @@ jobs:
         run: |
           $ErrorActionPreference='Stop'
           $root=Join-Path $env:LOCALAPPDATA 'NightCityUnderworld'
-          $runtime=Join-Path $root 'dashboard\0.1.0'
+          $runtime=Join-Path $root 'dashboard\0.2.0'
+          $listeners=Get-NetTCPConnection -LocalAddress 127.0.0.1 -LocalPort 8765 -State Listen -ErrorAction SilentlyContinue
+          foreach($listener in $listeners){
+            $owned=Get-CimInstance Win32_Process -Filter ('ProcessId='+$listener.OwningProcess)
+            if($owned.CommandLine -notmatch 'underworld\.dashboard' -or $owned.CommandLine -notmatch 'NightCityUnderworld'){
+              throw 'Port 8765 belongs to a different process; it will not be stopped'
+            }
+            Stop-Process -Id $listener.OwningProcess -ErrorAction Stop
+          }
           New-Item -ItemType Directory -Force -Path $runtime|Out-Null
           Copy-Item underworld -Destination $runtime -Recurse -Force
           Copy-Item scripts/start_dashboard.py -Destination $runtime -Force

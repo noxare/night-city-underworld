@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 import sqlite3
 import time
+from .observations import read as read_observations
 
 
 def read_json(path):
@@ -23,13 +24,15 @@ def snapshot(database: Path, directory: Path):
     health = read_json(directory / 'bridge-status.json') or {}
     beat = health.get('heartbeat', 0)
     age = max(0, time.time() - beat) if isinstance(beat, (int, float)) else None
-    result = {'app': 'underworld-dashboard', 'version': '0.1.0',
+    result = {'app': 'underworld-dashboard', 'version': '0.2.0',
               'bridge': {'online': age is not None and age < 6 and not health.get('stopped'),
                          'age_seconds': round(age, 1) if age is not None else None,
                          'version': health.get('version'), 'pid': health.get('pid')},
               'response': read_json(directory / 'bridge-response.json'),
               'npcs': [], 'events': [], 'database': 'not_found',
-              'scope': 'Demo-Daten; echte NPC-Erfassung und Kampagnen-Synchronisierung fehlen noch.'}
+              'observations': read_observations(database.with_name('npc-observations.sqlite3')),
+              'probe': read_json(directory / 'npc-probe.json'),
+              'scope': 'Testkontakte und getrennte NPC-Beobachtungen; Entity-IDs gelten nur pro Erfassungssitzung. Keine Kampagnen-Synchronisierung.'}
     if not database.is_file(): return result
     try:
         with closing(sqlite3.connect(database.resolve().as_uri() + '?mode=ro', uri=True, timeout=1)) as connection:
@@ -51,14 +54,15 @@ PAGE = '''<!doctype html><html lang="de"><meta charset="utf-8"><meta name="viewp
 <title>Underworld · Developer Console</title><style>
 :root{color-scheme:dark}*{box-sizing:border-box}body{margin:0;background:#091017;color:#e4edf1;font:15px system-ui,sans-serif}main{max-width:1250px;margin:auto;padding:36px 24px}header{border-bottom:1px solid #28414e;padding-bottom:24px;display:flex;justify-content:space-between;align-items:center}h1{margin:8px 0;font-size:32px}h2{font-size:19px}.eyebrow{letter-spacing:3px;color:#5ce0ce;font-size:12px}.muted{color:#9bb0bd}section{background:#101e28;border:1px solid #263c49;border-radius:12px;padding:22px;margin-top:20px}.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}.metric{font-size:28px;margin-top:12px}table{width:100%;border-collapse:collapse;text-align:left}td,th{padding:12px 8px;border-bottom:1px solid #263c49;vertical-align:top}th{color:#9bb0bd;font-weight:500}td{overflow-wrap:anywhere}button,input{background:#182d3b;border:1px solid #416071;color:#e4edf1;border-radius:7px;padding:10px}.badge{padding:9px 14px;border-radius:20px;background:#273742}#status[data-online="true"]{color:#5ce0ce;background:#123a36}.scroll{overflow:auto}.note{border-left:3px solid #d7a653;padding:12px 16px;background:#27251c;margin-top:24px}#error{color:#ffab9a}small{font-size:12px}@media(max-width:700px){.cards{grid-template-columns:1fr}main{padding:20px 12px}header{align-items:flex-start;gap:12px}h1{font-size:25px}}
 </style><main><header><div><span class="eyebrow">NIGHT CITY : UNDERWORLD</span><h1>Developer Console</h1><div class="muted">Bridge · Kontakte · Ereignisse</div></div><span id="status" class="badge">Verbinde …</span></header>
-<div class="note">Nur lesende Ansicht der lokalen Simulation. Angezeigte Kontakte sind bislang Testdaten. Keine echten NPC-Aktionen oder Spielstand-Synchronisierung.</div>
+<div class="note">Nur lesende Ansicht der lokalen Simulation. Testkontakte und echte NPC-Beobachtungen werden getrennt angezeigt. NPC-Beobachtungen gelten nur in ihrer Erfassungssitzung. Animationseingriffe und Spielstand-Synchronisierung sind noch nicht aktiv.</div>
 <div class="cards"><section><span class="muted">Python-Bridge</span><div class="metric" id="bridge">—</div><small id="heartbeat" class="muted"></small></section><section><span class="muted">Kontakte / Kontexte</span><div class="metric" id="count">—</div></section><section><span class="muted">Letzte Antwort</span><div class="metric" id="response">—</div><small id="request" class="muted"></small></section></div>
-<section><h2>Kontakte im Kern</h2><div class="scroll"><table><thead><tr><th>Kontakt</th><th>Ruf</th><th>Ereignisse</th><th>Kontext</th></tr></thead><tbody id="npcs"></tbody></table></div></section>
+<section><h2>NPC-Beobachtungen aus dem Spiel</h2><p class="muted" id="probe">Erfassung noch nicht aktiviert</p><div class="scroll"><table><thead><tr><th>Entity-ID</th><th>Treffer</th><th>Collider-Tags (Rohdaten)</th><th>Körperzone</th><th>Sitzung</th></tr></thead><tbody id="actors"></tbody></table></div></section>
+<section><h2>Testkontakte im Kern</h2><div class="scroll"><table><thead><tr><th>Kontakt</th><th>Ruf</th><th>Ereignisse</th><th>Kontext</th></tr></thead><tbody id="npcs"></tbody></table></div></section>
 <section><h2>Ereignisprotokoll</h2><p class="muted">Letzte 100 gespeicherte Ereignisse. Sequenz ist die Speicherreihenfolge; Zeitstempel werden bisher nicht erfasst.</p><input id="filter" placeholder="NPC, Ereignis oder ID filtern" aria-label="Ereignisse filtern"><div class="scroll"><table><thead><tr><th>#</th><th>Ereignis / ID</th><th>NPC</th><th>Rufänderung</th><th>Folge</th></tr></thead><tbody id="events"></tbody></table></div></section>
 <p id="error"></p><p class="muted"><span id="updated">Noch keine Daten</span> · <span id="db"></span> · <button id="refresh">Aktualisieren</button></p></main>
 <script>
 let current=null;const el=id=>document.getElementById(id);function rows(id,data,columns){const root=el(id);root.replaceChildren();if(!data.length){const tr=document.createElement('tr'),td=document.createElement('td');td.colSpan=columns.length;td.textContent='Noch keine gespeicherten Einträge.';tr.append(td);root.append(tr)}for(const item of data){const row=document.createElement('tr');for(const column of columns){const cell=document.createElement('td');cell.textContent=column(item);row.append(cell)}root.append(row)}}
-function render(){const d=current;if(!d)return;el('status').textContent=d.bridge.online?'Bridge online':'Bridge offline';el('status').dataset.online=String(d.bridge.online);el('bridge').textContent=d.bridge.version||'Nicht gestartet';el('heartbeat').textContent=d.bridge.online?'Heartbeat vor '+d.bridge.age_seconds+' s':'Kein frischer Heartbeat';el('count').textContent=d.npcs.length;el('response').textContent=d.response?.status||'Noch keine';el('request').textContent=d.response?.request_id||'';el('db').textContent='Datenbank: '+d.database;rows('npcs',d.npcs,[x=>x.name,x=>x.reputation,x=>x.event_count,x=>x.slot]);const query=el('filter').value.toLowerCase();rows('events',d.events.filter(x=>JSON.stringify(x).toLowerCase().includes(query)),[x=>x.sequence,x=>x.kind+' / '+x.event_id,x=>x.npc_id,x=>x.delta>0?'+'+x.delta:x.delta,x=>x.explanation])}
+function render(){const d=current;if(!d)return;el('status').textContent=d.bridge.online?'Bridge online':'Bridge offline';el('status').dataset.online=String(d.bridge.online);el('bridge').textContent=d.bridge.version||'Nicht gestartet';el('heartbeat').textContent=d.bridge.online?'Heartbeat vor '+d.bridge.age_seconds+' s':'Kein frischer Heartbeat';el('count').textContent=d.npcs.length;el('response').textContent=d.response?.status||'Noch keine';el('request').textContent=d.response?.request_id||'';el('db').textContent='Datenbank: '+d.database;rows('npcs',d.npcs,[x=>x.name,x=>x.reputation,x=>x.event_count,x=>x.slot]);const probe=d.probe;el('probe').textContent=probe?('Erfassung: '+(probe.enabled?'aktiv':'aus')+' · Treffer-Hook: '+(probe.hit_observer_registered?'registriert, Auslösung noch zu prüfen':'nicht registriert')+' · Animationen: nicht angesteuert'):'Noch keine Erfassungsdaten';rows('actors',d.observations?.actors||[],[x=>x.entity_id,x=>x.observed_hits,x=>(x.collider_tags||[]).join(', '),x=>x.body_zone+' (keine belegte Zuordnung)',x=>x.session_id]);const query=el('filter').value.toLowerCase();rows('events',d.events.filter(x=>JSON.stringify(x).toLowerCase().includes(query)),[x=>x.sequence,x=>x.kind+' / '+x.event_id,x=>x.npc_id,x=>x.delta>0?'+'+x.delta:x.delta,x=>x.explanation])}
 let busy=false;async function update(){if(busy)return;busy=true;try{const r=await fetch('/api/state',{cache:'no-store',signal:AbortSignal.timeout(4000)});if(!r.ok)throw Error('HTTP '+r.status);current=await r.json();render();el('error').textContent='';el('updated').textContent='Aktualisiert '+new Date().toLocaleTimeString('de-DE')}catch(e){el('error').textContent='Dashboard-Verbindung unterbrochen: '+e.message;el('status').textContent='Daten veraltet';el('status').dataset.online='false'}finally{busy=false}}el('refresh').onclick=update;el('filter').oninput=render;update();setInterval(update,2000);
 </script></html>'''
 

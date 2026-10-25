@@ -2,11 +2,13 @@
 import argparse
 import json
 import os
+import sqlite3
 from pathlib import Path
 import time
 import uuid
 from .bridge import LocalBridge, MAX_MESSAGE_BYTES
 from .store import WorldStore
+from .observations import ingest as ingest_observations
 
 VERSION = '0.0.2'
 SLOT = 'underworld-bridge-demo'
@@ -144,9 +146,14 @@ def main():
                 now = time.time()
                 if now - last_heartbeat >= 1:
                     try:
+                        observation_status = ingest_observations(args.directory, args.database.with_name('npc-observations.sqlite3'))['status']
+                    except (OSError, ValueError, sqlite3.Error):
+                        observation_status = 'unavailable'
+                    try:
                         atomic_json(args.directory / 'bridge-status.json', {
                             'protocol_version': 1, 'version': VERSION, 'instance': instance,
-                            'pid': os.getpid(), 'heartbeat': now, 'slot': SLOT, 'timeline': TIMELINE})
+                            'pid': os.getpid(), 'heartbeat': now, 'slot': SLOT, 'timeline': TIMELINE,
+                            'observations_status': observation_status})
                         last_heartbeat = now
                     except PermissionError:
                         pass

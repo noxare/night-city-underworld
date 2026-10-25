@@ -14,7 +14,7 @@ def install(game: Path, backup_root: Path, source: Path) -> dict:
     cet = game / 'bin/x64/plugins/cyber_engine_tweaks'
     if not cet.is_dir() or not (game / 'bin/x64/version.dll').is_file():
         raise ValueError('Active CET installation not found; no framework files changed')
-    files = ('demo.lua', 'init.lua')
+    files = ('demo.lua', 'init.lua') + (('npc_probe.lua',) if (source / 'npc_probe.lua').is_file() else ())
     for name in files:
         if not (source / name).is_file():
             raise ValueError('Missing packaged Lua file')
@@ -24,7 +24,7 @@ def install(game: Path, backup_root: Path, source: Path) -> dict:
     backup = backup_root / ('underworld-demo-' + datetime.now(timezone.utc).strftime('%Y%m%d-%H%M%S-') + uuid.uuid4().hex[:8])
     backup.mkdir(parents=True)
     target.mkdir(parents=True, exist_ok=True)
-    receipt = {'version': '0.0.2', 'target': str(target), 'files': []}
+    receipt = {'version': '0.0.3', 'target': str(target), 'files': []}
     # Complete all backups before touching an installed Lua file.
     for name in files:
         destination = target / name
