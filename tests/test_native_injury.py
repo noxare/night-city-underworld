@@ -14,6 +14,8 @@ class NativeInjuryTest(unittest.TestCase):
         h.run('''
 local chosen,deleted,applied,removed,created=nil,0,0,0,0
 local lastMovement=nil
+local commandActive=false
+AIbehaviorUniqueActiveCommandList={IsActionCommandById=function()return commandActive end}
 local sent=0;local pos={x=0,y=0,z=0}
 local controller={SendCommand=function(_,cmd)assert(cmd.ignoreNavigation==false);sent=sent+1;lastMovement=cmd.movementType end,CancelCommand=function()end}
 local weights={}
@@ -45,10 +47,19 @@ click('Linkes Bein: nativen Effekt anwenden');assert(applied==1 and lastMovement
 click('Flucht vom Spieler testen');assert(lastMovement==moveMovementType.Run and applied==2)
 assert(t.legEffects.Left and t.intent=='flee')
 assert(weights.woundedLocomotion_l_leg==1 and weights.woundedLocomotion_r_leg==0)
+-- AI command activation can replace the initial graph state. Rebind once.
+weights.woundedLocomotion_l_leg=0
+commandActive=true;t.update(1)
+assert(weights.woundedLocomotion_l_leg==1 and t.wrapperBoundToCommand)
+weights.woundedLocomotion_l_leg=.25;t.update(1)
+assert(weights.woundedLocomotion_l_leg==.25) -- no per-frame forcing
 click('Rechtes Bein: nativen Effekt anwenden')
 assert(weights.woundedLocomotion_l_leg==0 and weights.woundedLocomotion_r_leg==1)
 click('Beineffekte entfernen');assert(removed==2 and lastMovement==moveMovementType.Run)
 assert(not t.legEffects.Left and not t.legEffects.Right)
 assert(weights.woundedLocomotion_l_leg==0 and weights.woundedLocomotion_r_leg==0)
+pos.x=2;t.update(4)
+assert(t.motionState:find('Keine Bewegung'))
+assert(t.commandState=='aktiv')
 t.update(61);assert(deleted==1 and t.id==nil)
 ''')
