@@ -5,3 +5,7 @@ The test module now separates movement intent (walk/flee) from its requested leg
 A new `Flucht vom Spieler testen` button enables a controlled healthy/injured comparison. The Lua test covers Run->injury->Walk, a repeated flee command retaining the injury/effect, recovery->Run, actor ownership and cleanup. The game may not honor a movement command or native effect as expected; those outcomes are not proved by a mocked test.
 
 Open requirement: an actual native injured flee locomotion must be verified on Cyberpunk2.5. Slow Walk is not a substitute for the required persistent limping gait. This experiment does not satisfy that visual acceptance criterion yet.
+
+## User feedback correction
+
+The user observed walking speed and no limp. The Walk fallback was rejected as incorrect and removed. Both healthy and injured flight now request Run; the native leg-effect requests are retained separately after movement transitions. This corrects the artificial walk-speed substitution only. A visible injured locomotion graph remains unimplemented/unverified, and the experiment does not satisfy the persistent limping acceptance criterion. Do not report the added Run request as a completed injured-flee implementation.
