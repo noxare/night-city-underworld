@@ -24,6 +24,7 @@ function Test.cleanup()
     -- The tag is reserved exclusively for this module.
     s:DeleteTagged(tag)
     Test.id=nil;Test.age=0;Test.walkStarted=false;Test.command=nil;Test.origin=nil;Test.distance=0;Test.legEffects={};Test.intent='walk'
+    Test.wrapperState=nil;Test.speed=nil;Test.lastPosition=nil;Test.commandAge=nil;Test.motionState=nil;Test.commandState=nil;Test.policyState=nil;Test.lastInjuredSide=nil
     Test.message='Test-NPC entfernt'
 end
 local function spawn()
@@ -37,6 +38,7 @@ local function spawn()
         error('Bitte einen generischen Crowd-NPC ansehen; keine Questfigur')
     end
     local record=target:GetRecordID()
+    Test.record=tostring(record)
     if not TweakDB:GetRecord(record) then error('NPC-Datensatz nicht verfuegbar') end
     local p=player:GetWorldPosition()
     local forward=player:GetWorldForward()
@@ -48,6 +50,7 @@ local function spawn()
     spec.alwaysSpawned=false;spec.spawnInView=true;spec.active=true
     spec.tags={tag}
     Test.id=s:CreateEntity(spec);Test.age=0;Test.walkStarted=false;Test.distance=0;Test.origin=nil;Test.legEffects={};Test.intent='walk'
+    Test.wrapperState=nil;Test.speed=nil;Test.lastInjuredSide=nil;Test.commandAge=nil;Test.motionState=nil
     Test.message='Test-NPC angefordert; Spawn erfolgt asynchron. Automatische Entfernung nach 60 s.'
 end
 applyInjuryWrappers=function(actor)
@@ -96,10 +99,19 @@ move=function(intent)
     command.useStart=true;command.useStop=true
     controller:SendCommand(command)
     Test.command=command
+    -- A command intent alone may leave the existing crowd movement policy unchanged.
+    -- Source: AIControl.MakeFollower; only our disposable clone is modified.
+    local policyOk,policyErr=pcall(function()
+        actor:GetMovePolicesComponent():ChangeMovementType(command.movementType)
+    end)
+    Test.policyState=policyOk and 'Bewegungspolicy aktualisiert' or 'Policyfehler: '..tostring(policyErr)
     Test.intent=intent
-    restoreLegEffects(actor)
+    Test.wrapperBoundToCommand=false;Test.commandAge=0;Test.motionState='Ausfuehrung noch nicht bestaetigt';Test.diagnosticAfter=0
     Test.origin={x=position.x,y=position.y,z=position.z}
     Test.distance=0;Test.walkStarted=true;Test.lastPosition=nil;Test.speed=0
+    -- Keep movement measurement alive even when the animation adapter fails.
+    local ok,err=pcall(restoreLegEffects,actor)
+    if not ok then Test.wrapperState='Wrapper-/Statuseffektfehler: '..tostring(err) end
     Test.message=intent=='flee' and (injured and 'Flucht-Laufbefehl + nativer Bein-Wrapper angefordert; Wirkung noch pruefen' or 'Unverletzte Flucht: Laufbefehl gesendet') or 'Gehbefehl gesendet; Bewegung wird gemessen'
 end
 walk=function()move('walk')end
@@ -131,8 +143,9 @@ function Test.update(delta)
         local ok,actor=pcall(owned)
         if ok and actor then run(walk) end
     end
+    if Test.commandAge then Test.commandAge=Test.commandAge+delta end
     if Test.origin then
-        pcall(function()
+        local ok,err=pcall(function()
             local actor=owned()
             if actor then local p=actor:GetWorldPosition();local o=Test.origin
                 local last=Test.lastPosition
@@ -141,8 +154,29 @@ function Test.update(delta)
                 end
                 Test.lastPosition={x=p.x,y=p.y,z=p.z}
                 Test.distance=math.sqrt((p.x-o.x)^2+(p.y-o.y)^2+(p.z-o.z)^2)
+                if Test.commandAge>=Test.diagnosticAfter then
+                    Test.diagnosticAfter=Test.commandAge+1
+                    local activeOk,active=pcall(function()
+                        return AIbehaviorUniqueActiveCommandList.IsActionCommandById(actor:GetAIControllerComponent().activeCommands,Test.command.id)
+                    end)
+                    -- Bind after AI activation as well as at request time: activation may
+                    -- change the graph. One bounded bind per command, never per frame.
+                    if activeOk and active and not Test.wrapperBoundToCommand then
+                        Test.wrapperBoundToCommand=true
+                        local bound,bindErr=pcall(applyInjuryWrappers,actor)
+                        if not bound then Test.wrapperState='Wrapperfehler: '..tostring(bindErr) end
+                    end
+                    Test.commandState=activeOk and (active and 'aktiv' or 'nicht aktiv') or 'Abfrage nicht verfuegbar'
+                    local state=Test.distance>.25 and 'Bewegung gemessen; Gangart separat beurteilen'
+                        or (Test.commandAge>=3 and 'Keine Bewegung bestaetigt: KI/Navigation pruefen' or 'Warte auf Bewegung')
+                    if state~=Test.motionState then
+                        Test.motionState=state
+                        print('[Underworld InjuryTest] record='..tostring(Test.record)..' intent='..tostring(Test.intent)..' command='..Test.commandState..' '..state)
+                    end
+                end
             end
         end)
+        if not ok then Test.motionState='Messfehler: '..tostring(err) end
     end
 end
 function Test.draw(overlay)
@@ -150,6 +184,10 @@ function Test.draw(overlay)
     ImGui.Text('Nativer Verletzungstest · nur eigener Crowd-Klon')
     ImGui.Text('Nur auf freier, ebener Flaeche starten. Kein Kampf wird ausgeloest.')
     ImGui.Text(Test.message)
+    if Test.record then ImGui.Text('NPC-Vorlage: '..Test.record) end
+    if Test.policyState then ImGui.Text(Test.policyState) end
+    if Test.commandState then ImGui.Text('Bewegungsbefehl: '..Test.commandState) end
+    if Test.motionState then ImGui.Text(Test.motionState) end
     if Test.wrapperState then ImGui.Text(Test.wrapperState) end
     if Test.speed then ImGui.Text(string.format('Gemessene Geschwindigkeit: %.2f m/s',Test.speed)) end
     if Test.origin then ImGui.Text(string.format('Gemessene Wegstrecke: %.2f m',Test.distance or 0)) end
