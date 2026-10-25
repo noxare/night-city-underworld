@@ -31,7 +31,7 @@ jobs:
             throw 'Game is running. Close it before retrying this installation. Nothing installed.'
           }
           $game='H:\SteamLibrary\steamapps\common\Cyberpunk 2077'
-          $backups=Join-Path ([Environment]::GetFolderPath('MyDocuments')) 'Underworld-ModBackups'
+          $backups=Join-Path $env:USERPROFILE 'Documents\Underworld-ModBackups'
           python scripts/install_cet_demo.py --game $game --backup-root $backups
           if ($LASTEXITCODE -ne 0) { throw 'Underworld installation failed' }
           $cet=Join-Path $game 'bin\x64\plugins\cyber_engine_tweaks'
