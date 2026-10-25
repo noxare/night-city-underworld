@@ -1,5 +1,14 @@
 # Development and crash recovery status
 
+## Installed wounded-locomotion adapter package 0.0.5
+
+- Installed audit completed with actual resource matches and successful behavior JSON conversion; metadata inspection resolved woundedLocomotion_l_leg/r_leg wrapperName fields in ApplyAnimWrappersOnWeapon tasks, conditioned by WoundedLeftLeg/RightLeg. Exact installed identities and hashes: docs/INSTALLED_WOUNDED_LOCOMOTION.md.
+- Important provenance correction: CLI -gp loads game context; archive labels in the audit manifest are requested command contexts, not verified physical resource origin. No game binaries or full converted JSON were committed.
+- PR #10 merged as a347219. Native wrapper-weight calls now target only the owned clone at controlled injury/movement transitions, wait for attachment, use one-leg priority, reset weights on treatment/cleanup and measure actual speed. This supplies a native graph binding that the earlier Walk/Run experiments lacked.
+- Windows CI passed; installation succeeded: https://github.com/noxare/night-city-underworld/actions/runs/40233757276 . GUI build0.0.5, wire protocol still0.0.2. No game restart was performed; CET reload loads the new Lua.
+- Visible asymmetric injured gait, an appropriate injury-limited flee speed and native AI interaction remain unverified. No completed limping capability is claimed from mocked tests or successful deployment. One bundled game acceptance is healthy walk -> selected injured leg -> injured walk -> flee -> treatment -> cleanup.
+
+
 ## Animation asset investigation — active milestone
 
 - Installed WolvenKit GUI found, no standalone console initially. Official WolvenKit9.1 Console is now provisioned under LOCALAPPDATA/NightCityUnderworld/tools with release SHA-256 verification. Actual binary is WolvenKit.CLI.exe.
