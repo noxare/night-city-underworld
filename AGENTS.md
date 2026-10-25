@@ -8,6 +8,7 @@ Protect vanilla story-critical quests and actors. Apply strict spawn limits and 
 Only run tests relevant to touched modules, expanding to full integration tests when justified.
 Use small auditable changes/PRs and add tests, docs and reproducibility notes.
 User acceptance is milestone-based: complete coherent end-to-end feature bundles and internal tests before asking for an in-game check. Do not ask the user to test each implementation increment. Escalate only concrete blockers requiring user action. See docs/NPC_MILESTONE.md for the next bundled NPC/injury scope.
+Animation/locomotion ownership: delegate animation, injury-gait, behavior-graph and player/NPC movement work to the animation specialist role in docs/agents/ANIMATION_SPECIALIST.md. Follow docs/playbooks/ANIMATION_LOCOMOTION.md, including complete engine-chain investigation, bundled internal verification and explicit in-game evidence. Do not substitute generic Walk/Run commands for a verified injured gait.
 Respect CD PROJEKT RED fan-content policies, license compatibility and third-party assets; no unauthorized copying.
 
 Platform policy: prioritize Windows x64 and a working Cyberpunk 2077 integration. Native macOS porting is deferred until the Windows mod is playable and stable. Keep core rules portable when practical but do not spend development time on speculative macOS engine adapters.
