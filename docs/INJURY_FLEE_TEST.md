@@ -9,3 +9,7 @@ Open requirement: an actual native injured flee locomotion must be verified on C
 ## User feedback correction
 
 The user observed walking speed and no limp. The Walk fallback was rejected as incorrect and removed. Both healthy and injured flight now request Run; the native leg-effect requests are retained separately after movement transitions. This corrects the artificial walk-speed substitution only. A visible injured locomotion graph remains unimplemented/unverified, and the experiment does not satisfy the persistent limping acceptance criterion. Do not report the added Run request as a completed injured-flee implementation.
+
+## Clarified movement requirement
+
+The user's rejection of Walk was not a request for healthy running speed. Injury constrains maximum speed and gait; escape intent asks for the fastest supported movement within that constraint. Injured fleeing should generally be faster/more urgent than relaxed injured walking, but slower than healthy fleeing, with limp retained. Severity and supported locomotion determine the limit; no fabricated universal multiplier is assumed. An unconditional Run request without an effective injury speed/gait constraint is not a completed solution. The current experimental adapter still lacks that verified constraint.
