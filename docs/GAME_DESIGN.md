@@ -188,3 +188,18 @@ Acceptance for the bundled milestone:
 4. Persist validated Underworld injury/encounter state with explicit save-context safeguards. Do not promise arbitrary crowd reconstruction before proving stable identity.
 5. Verify interruption, actor cleanup, repeated damage, recovery and supported save/reload boundaries.
 6. Deliver a compact end-to-end user test, with known limitations and measured in-game evidence. If the engine does not expose a required animation reliably, report the blocker rather than substituting a hidden modifier and calling the visual requirement complete.
+
+## Injury gait must survive flight-state transitions (2026-10-25)
+
+Binding user requirement: a leg-injured NPC must flee with an injured/limping gait.
+Switching into flight, combat repositioning or another AI movement intent must not
+silently restore normal running. Separate intent (escape destination/urgency) from
+injury constraints (gait, posture and supported speed range). Resolve active injury
+constraints after movement-intent changes and remove them only after explicit
+recovery/treatment. Do not force an animation every frame or bypass navigation.
+
+Acceptance must include a BEFORE injury baseline, injured walking, injured flight,
+interruption/resumption and recovery. In particular, normal running during a
+persistent leg injury fails acceptance even if an earlier idle pain reaction was
+visible. A successful manual Walk command does not prove the flee integration.
+This requirement is not yet verified in the live game adapter.
