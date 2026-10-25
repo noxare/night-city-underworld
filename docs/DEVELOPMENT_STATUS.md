@@ -1,5 +1,16 @@
 # Development and crash recovery status
 
+## 2026-10-25 first installable CET sandbox
+
+- PR #2 merged after Windows CI passed. Prototype 0.0.1 adds an ImGui panel, read-only V-coordinate probe, synthetic contact reputation and contact -> shipment -> clinic clue chain.
+- No spawning, AI control, quests or Python-sidecar connection. Demo journal is one global mod-local test profile, versioned, duplicate-safe and limited to 100 events; no campaign save synchronization. Corrupt/incomplete journal blocks further writes.
+- Installer backs up owned Lua files, checks hashes, rolls back failed copies and preserves journals/unrelated mods. Windows installation workflow refuses to install while Cyberpunk is running.
+- Three local installer tests and actual Lua rule/syntax test passed. System Lua 5.4 is not CET LuaJIT; Windows CI explicitly skips the Lua test if unavailable.
+- Installation and CET INIT/DRAW/PLAYER_READ evidence require separate verification. Do not infer visible in-game success from installation CI.
+- Instructions: docs/INGAME_TEST.md. Next: inspect fresh CET logs after launch, then reconcile campaign save context and connect the external core before real persistent NPC events.
+
+The following sections record earlier evidence and historical status.
+
 Last reviewed: 2026-10-24
 
 ## Current phase
