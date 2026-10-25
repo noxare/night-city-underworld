@@ -1,5 +1,15 @@
 # Development and crash recovery status
 
+## Verified installation receipt — 2026-10-25
+
+- First CET prototype merged in PR #3 and installed on STEAMBOX. Installer and SHA-256 verification succeeded: https://github.com/noxare/night-city-underworld/actions/runs/40155690515 . Existing Underworld files are backed up under the local Documents/Underworld-ModBackups folder; stale OneDrive Documents redirection was avoided.
+- Read-only diagnostics found the prior CET launch ended with `Unknown Game Version, update the mod`; no Underworld INIT/DRAW markers existed yet.
+- Official upstream CET v1.38.0 explicitly supports Cyberpunk 2.5 / executable 3.0.88.46235. Downloaded the pinned official release asset, verified its published SHA-256, installed and verified package files with backup/rollback and preserved existing settings/user mods. Successful update: https://github.com/noxare/night-city-underworld/actions/runs/40155857591 .
+- Source: https://github.com/maximegmd/CyberEngineTweaks/releases/tag/v1.38.0 . Archive SHA-256: 6da2e91b07d5ea9dd4aa32145b2c2920a976abee481854976e2ae82169b612e1.
+- Windows prototype CI passed 13 tests with 1 explicit skip (system Lua unavailable); Lua rule and mocked entrypoint checks passed separately on the development host. Framework updater's 3 targeted tests passed locally and on Windows.
+- No game was launched by these workflows. User should now launch normally, open CET and test the prototype panel; fresh INIT/DRAW/PLAYER_READ log markers and visible behavior remain unverified. Do not treat installation success as engine verification.
+
+
 ## 2026-10-25 first installable CET sandbox
 
 - PR #2 merged after Windows CI passed. Prototype 0.0.1 adds an ImGui panel, read-only V-coordinate probe, synthetic contact reputation and contact -> shipment -> clinic clue chain.
