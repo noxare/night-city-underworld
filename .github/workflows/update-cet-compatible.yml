@@ -1,0 +1,34 @@
+name: Update CET for Cyberpunk 2.5
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/update-cet-compatible.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: underworld-game-install
+  cancel-in-progress: false
+jobs:
+  update:
+    runs-on: [self-hosted, Windows, X64]
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test official framework updater
+        shell: powershell -NoProfile -ExecutionPolicy Bypass -File {0}
+        run: |
+          python -m unittest discover -s tests -p test_cet_update.py -v
+          if ($LASTEXITCODE -ne 0) { throw 'CET updater tests failed' }
+      - name: Install pinned upstream CET with archive verification
+        shell: powershell -NoProfile -ExecutionPolicy Bypass -File {0}
+        run: |
+          $ErrorActionPreference='Stop'
+          if(Get-Process Cyberpunk2077 -ErrorAction SilentlyContinue){throw 'Game running; no framework files changed'}
+          $archive=Join-Path $env:RUNNER_TEMP 'underworld-cet-1.38.0.zip'
+          Invoke-WebRequest -UseBasicParsing -Uri 'https://github.com/maximegmd/CyberEngineTweaks/releases/download/v1.38.0/cet_1_38_0.zip' -OutFile $archive
+          $game='H:\SteamLibrary\steamapps\common\Cyberpunk 2077'
+          $backups=Join-Path $env:USERPROFILE 'Documents\Underworld-ModBackups'
+          python scripts/update_cet_framework.py --game $game --backup-root $backups --archive $archive --sha256 '6da2e91b07d5ea9dd4aa32145b2c2920a976abee481854976e2ae82169b612e1'
+          if($LASTEXITCODE -ne 0){throw 'CET update failed'}
+          Write-Host 'Official CET 1.38.0 installed; user settings and mods preserved. In-game verification pending.'
