@@ -166,3 +166,25 @@ Keep vanilla 1–5 star police pursuit as the acute response to immediate danger
 
 ## Underworld wherever the simulation runs (decision 2026-10-23)
 The player should experience the same persistent NPC relationships, economy, faction decisions and emergent world regardless of whether the Underworld simulation executes on their gaming PC, another computer, NAS or hosted server. Support offline/local-first play as the baseline. macOS game support is a future bridge-specific feasibility question, not a reason to fork simulation gameplay. Console support may be absent or reduced depending on officially permitted mod interfaces. Do not promise cross-platform parity until confirmed.
+
+## Visible injury behavior and bundled NPC milestone (2026-10-25)
+
+User requirement: deliver coherent playable feature bundles rather than asking the user to validate every implementation increment. Internal targeted tests and small auditable commits remain appropriate. The next NPC milestone should combine acquisition/identity inspection, an observed encounter, injury state, visible reaction where supported, persistence and dashboard evidence into one repeatable test scenario.
+
+NPC injuries must have visible consequences, not just hidden numerical state:
+- Immediate hit reactions appropriate to observed damage and supported animation facilities.
+- Persistent leg injury: limping, reduced gait and suitable movement transitions where engine support is verified.
+- Arm injury: protective posture and restricted weapon/arm use where supported.
+- Torso injury: supported pain/protective posture and appropriate reduced activity.
+- Severe injury: supported stagger, fall, nonlethal incapacitation, retreat or surrender; distinguish actual death.
+- Recovery and later treatment/prosthetics update both injury rules and supported visible behavior.
+
+These are requirements, not implemented or engine-verified features. Do not assume baseline game reactions are absent or adequate: record existing behavior first. Verify available hit-zone signals, animation resources, AI locomotion modes and transition hooks on the installed Windows version. Do not infer an injured limb from generic HP loss. Avoid forcing an animation every frame or overriding quest-critical actor behavior. Injuries must remain compatible with navigation, combat, streaming, interruption and cleanup; release interventions safely when actors unload or a scene ends.
+
+Acceptance for the bundled milestone:
+1. Identify a suitable test actor; protect vanilla quest actors and establish an explicit supported actor scope.
+2. Observe reliable damage/nonlethal/death and body-zone signals; show their provenance and unsupported capabilities in the dashboard.
+3. Demonstrate at least one verified injury-to-visible-behavior transition (e.g. a leg injury and supported limp) without stuck AI or broken navigation.
+4. Persist validated Underworld injury/encounter state with explicit save-context safeguards. Do not promise arbitrary crowd reconstruction before proving stable identity.
+5. Verify interruption, actor cleanup, repeated damage, recovery and supported save/reload boundaries.
+6. Deliver a compact end-to-end user test, with known limitations and measured in-game evidence. If the engine does not expose a required animation reliably, report the blocker rather than substituting a hidden modifier and calling the visual requirement complete.
