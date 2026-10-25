@@ -25,5 +25,15 @@ jobs:
           $log=Join-Path $cet 'cyber_engine_tweaks.log'
           if(Test-Path $log){Write-Host 'CET loader log:';Get-Content $log -Tail 200}
           $mod=Join-Path $cet 'mods\night_city_underworld'
+          $healthFile=Join-Path $mod 'bridge-status.json'
+          if(Test-Path $healthFile){
+            $health=Get-Content $healthFile -Raw|ConvertFrom-Json
+            $now=[DateTimeOffset]::UtcNow.ToUnixTimeSeconds()
+            Write-Host ('Bridge heartbeat age seconds: '+($now-$health.heartbeat))
+            Write-Host ('Bridge version: '+$health.version)
+            Write-Host ('Bridge process alive: '+[bool](Get-Process -Id $health.pid -ErrorAction SilentlyContinue))
+            $responseFile=Join-Path $mod 'bridge-response.json'
+            if(Test-Path $responseFile){Write-Host 'Latest bridge response:';Get-Content $responseFile}
+          }
           Get-ChildItem $mod -File -ErrorAction SilentlyContinue | ForEach-Object {Write-Host ('Mod file '+$_.Name+' bytes='+$_.Length+' modified='+$_.LastWriteTime)}
           Get-ChildItem $cet -Filter '*underworld*.log' -File -Recurse -ErrorAction SilentlyContinue | Select-Object -First 3 | ForEach-Object {Write-Host ('Mod log '+$_.Name);Get-Content $_.FullName -Tail 60}
