@@ -73,5 +73,4 @@ function Test.draw(overlay)
     end
     if ImGui.Button('Test-NPC entfernen / aufraeumen') then run(Test.cleanup) end
 end
-registerForEvent('onShutdown',function()pcall(Test.cleanup)end)
 return Test

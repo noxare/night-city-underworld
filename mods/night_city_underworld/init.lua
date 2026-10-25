@@ -9,6 +9,7 @@ local session = tostring(os.time()) .. '-' .. tostring({}):gsub('[^%w]', '')
 local message = 'Python-Kern wird gesucht ...'
 local position = 'Noch nicht abgefragt'
 local injuryTest = nil
+local injuryTestError = nil
 local npcProbe = nil
 local npcProbeError = nil
 
@@ -74,7 +75,7 @@ end
 
 registerForEvent('onInit', function()
     local loaded,test=pcall(require,'injury_test')
-    if loaded then injuryTest=test end
+    if loaded then injuryTest=test else injuryTestError=tostring(test);print('[Underworld InjuryTest] LOAD_ERROR '..injuryTestError) end
     local loaded,probe = pcall(require,'npc_probe')
     if loaded and type(probe) == 'table' then
         npcProbe=probe
@@ -97,6 +98,10 @@ registerForEvent('onInit', function()
 end)
 registerForEvent('onUpdate', function(delta)
     if not ready then return end
+    if injuryTest then
+        local ok,err=pcall(injuryTest.update,delta)
+        if not ok then injuryTestError=tostring(err) end
+    end
     if npcProbe then
         local observed=pcall(npcProbe.update,delta)
         if not observed then npcProbeError='NPC-Probe pausiert nach Lesefehler';pcall(npcProbe.enable,false) end
@@ -174,10 +179,19 @@ registerForEvent('onDraw', function()
         else
             ImGui.Text('Zum Bedienen das CET-Overlay oeffnen.')
         end
-        if injuryTest then pcall(injuryTest.draw,overlay) end
+        if injuryTest then
+            local ok,err=pcall(injuryTest.draw,overlay)
+            if not ok then injuryTestError=tostring(err) end
+        else
+            ImGui.Text('Nativer Verletzungstest nicht geladen')
+        end
+        if injuryTestError then ImGui.Text('Verletzungstest-Fehler: '..injuryTestError) end
         ImGui.Separator()
         ImGui.Text(message)
     end
     ImGui.End()
+end)
+registerForEvent('onShutdown',function()
+    if injuryTest then pcall(injuryTest.cleanup) end
 end)
 return {version = version}

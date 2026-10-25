@@ -26,7 +26,7 @@ CName={new=function(x)return x end};TweakDBID=CName
 Vector4={new=function()return {}end};DynamicEntitySpec={new=function()return {}end}
 TweakDB={GetRecord=function()return {}end}
 StatusEffectHelper={ApplyStatusEffect=function(a)assert(a==actor);applied=applied+1 end}
-registerForEvent=function()end;print=function()end
+registerForEvent=nil;print=function()end
 ImGui={Separator=function()end,Text=function()end,Button=function(x)return x==chosen end}
 local t=dofile(MODULE)
 local function click(x)chosen=x;t.draw(true);chosen=nil end
