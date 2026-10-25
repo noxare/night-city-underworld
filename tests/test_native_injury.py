@@ -13,7 +13,9 @@ class NativeInjuryTest(unittest.TestCase):
         h.run('MODULE='+json.dumps(str(p)))
         h.run('''
 local chosen,deleted,applied,removed,created=nil,0,0,0,0
-local actor={}
+local sent=0;local pos={x=0,y=0,z=0}
+local controller={SendCommand=function(_,cmd)assert(cmd.ignoreNavigation==false);sent=sent+1 end,CancelCommand=function()end}
+local actor={GetAIControllerComponent=function()return controller end,GetWorldPosition=function()return pos end}
 local player={GetWorldPosition=function()return {x=0,y=0,z=0}end,GetWorldForward=function()return {x=1,y=0}end,GetWorldOrientation=function()return {}end}
 local target={IsNPC=function()return true end,IsCrowd=function()return true end,GetRecordID=function()return 'crowd-record'end}
 local s={IsReady=function()return true end,IsPopulated=function()return false end,
@@ -23,6 +25,7 @@ Game={GetDynamicEntitySystem=function()return s end,GetPlayer=function()return p
 GetTargetingSystem=function()return {GetLookAtObject=function()return target end}end,
 GetStatusEffectSystem=function()return {RemoveStatusEffect=function(_,id)assert(id=='owned');removed=removed+1 end}end}
 CName={new=function(x)return x end};TweakDBID=CName
+WorldPosition={new=function()return {SetVector4=function()end}end};AIPositionSpec={new=function()return {SetWorldPosition=function()end}end};AIMoveToCommand={new=function()return {}end};moveMovementType={Walk=1}
 Vector4={new=function()return {}end};DynamicEntitySpec={new=function()return {}end}
 TweakDB={GetRecord=function()return {}end}
 StatusEffectHelper={ApplyStatusEffect=function(a)assert(a==actor);applied=applied+1 end}
@@ -31,6 +34,8 @@ ImGui={Separator=function()end,Text=function()end,Button=function(x)return x==ch
 local t=dofile(MODULE)
 local function click(x)chosen=x;t.draw(true);chosen=nil end
 click('Eigenen Test-NPC erzeugen');assert(created==1)
+t.update(2);assert(sent==1);pos.x=2;t.update(.1);assert(t.distance==2)
+click('Test-NPC gehen lassen (6 m)');assert(sent==2)
 click('Eigenen Test-NPC erzeugen');assert(created==1)
 click('Linkes Bein: nativen Effekt anwenden');assert(applied==1)
 click('Beineffekte entfernen');assert(removed==2)
