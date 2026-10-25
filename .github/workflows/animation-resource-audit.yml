@@ -51,6 +51,15 @@ jobs:
             if($LASTEXITCODE -ne 0){throw '.NET runtime extraction failed'}
             Write-Host ('Isolated .NET runtime version: '+$release.runtime.version)
           }
+          if(-not(Test-Path $runtimeExe)){
+            Write-Host 'Runtime archive inventory:'
+            python -c "import zipfile,sys;z=zipfile.ZipFile(sys.argv[1]);print(chr(10).join(z.namelist()[:25]));print('HOSTS', [n for n in z.namelist() if n.lower().endswith('dotnet.exe')])" (Join-Path $root 'dotnet-runtime10.zip')
+            $hosts=@(Get-ChildItem $runtimeRoot -Filter dotnet.exe -File -Recurse|Select-Object -First 1)
+            if($hosts.Count -eq 1){$runtimeExe=$hosts[0].FullName;$runtimeRoot=$hosts[0].DirectoryName}
+          }
+          if(-not(Test-Path $runtimeExe)){throw 'Verified runtime package contains no located dotnet host'}
+          $env:DOTNET_ROOT=$runtimeRoot
+          $env:DOTNET_ROOT_X64=$runtimeRoot
           $assembly=Join-Path $tool[0].DirectoryName 'WolvenKit.CLI.dll'
           & $runtimeExe $assembly --help
           if($LASTEXITCODE -ne 0){throw 'Console help failed'}
