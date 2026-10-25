@@ -5,6 +5,7 @@ on:
     paths:
       - 'mods/night_city_underworld/**'
       - 'underworld/**'
+      - '!underworld/dashboard.py'
       - 'scripts/start_bridge.py'
       - 'scripts/install_cet_demo.py'
       - '.github/workflows/install-ingame-demo.yml'

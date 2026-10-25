@@ -1,0 +1,39 @@
+name: Install local developer dashboard
+on:
+  push:
+    branches: [main]
+    paths: ['underworld/dashboard.py','scripts/start_dashboard.py','.github/workflows/install-dashboard.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  install:
+    runs-on: [self-hosted, Windows, X64]
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test read-only dashboard
+        shell: powershell -NoProfile -ExecutionPolicy Bypass -File {0}
+        run: |
+          python -m unittest discover -s tests -p test_dashboard.py -v
+          if($LASTEXITCODE -ne 0){throw 'Dashboard tests failed'}
+      - name: Install separate dashboard runtime and verify HTTP
+        shell: powershell -NoProfile -ExecutionPolicy Bypass -File {0}
+        run: |
+          $ErrorActionPreference='Stop'
+          $root=Join-Path $env:LOCALAPPDATA 'NightCityUnderworld'
+          $runtime=Join-Path $root 'dashboard\0.1.0'
+          New-Item -ItemType Directory -Force -Path $runtime|Out-Null
+          Copy-Item underworld -Destination $runtime -Recurse -Force
+          Copy-Item scripts/start_dashboard.py -Destination $runtime -Force
+          $database=Join-Path $root 'world.sqlite3'
+          $mod='H:\SteamLibrary\steamapps\common\Cyberpunk 2077\bin\x64\plugins\cyber_engine_tweaks\mods\night_city_underworld'
+          $script=Join-Path $runtime 'start_dashboard.py'
+          $python=(Get-Command python).Source
+          $command='"{0}" "{1}" --runtime "{2}" --database "{3}" --directory "{4}"' -f $python,$script,$runtime,$database,$mod
+          Set-Content -Path (Join-Path $root 'Open-UnderworldDashboard.cmd') -Value @('@echo off',$command,'start "" http://127.0.0.1:8765') -Encoding ASCII
+          python $script --runtime $runtime --database $database --directory $mod
+          if($LASTEXITCODE -ne 0){throw 'Dashboard startup failed'}
+          $page=Invoke-WebRequest -UseBasicParsing http://127.0.0.1:8765/
+          if($page.StatusCode -ne 200 -or $page.Content -notmatch 'Developer Console'){throw 'Dashboard page verification failed'}
+          Write-Host 'Dashboard verified at http://127.0.0.1:8765; no game restart needed.'
