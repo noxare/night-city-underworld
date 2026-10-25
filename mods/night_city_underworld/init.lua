@@ -112,7 +112,7 @@ registerForEvent('onDraw', function()
     if not ready or not visible then return end
     if ImGui.Begin('Night City: Underworld - Bridge', ImGuiWindowFlags.AlwaysAutoResize) then
         ImGui.Text('UNDERWORLD Bridge ' .. version)
-        ImGui.Text('NPC-Meilenstein Build 0.0.3 | Nur lesende Erfassung')
+        ImGui.Text('NPC-Meilenstein Build 0.0.4 | Nur lesende Erfassung')
         ImGui.Text(connected and 'Python-Kern: verbunden' or 'Python-Kern: offline / startet')
         ImGui.Text('Separates Demo-Profil - keine Kampagnen-Synchronisierung')
         ImGui.Text('Kontakt: Mara Quinn (Testkontakt)')

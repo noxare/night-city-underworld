@@ -5,6 +5,26 @@ from lua_harness import LuaHarness
 
 
 class NpcProbeTest(unittest.TestCase):
+    def test_native_reaction_samples_are_separate_from_anatomical_hit_claims(self):
+        try: lua=LuaHarness()
+        except RuntimeError as error: self.skipTest(str(error))
+        self.addCleanup(lua.close)
+        path=Path(__file__).resolve().parents[1]/'mods/night_city_underworld/npc_probe.lua'
+        lua.run('PROBE='+json.dumps(str(path)))
+        lua.run('''
+local hooks={}
+ObserveAfter=function(class,method,fn) hooks[class]=fn end
+TweakDB={GetRecord=function()return {} end}
+local actor={IsNPC=function()return true end,GetEntityID=function()return {hash='actor'} end}
+Game={GetPlayer=function()return {} end,GetTargetingSystem=function()return {GetLookAtObject=function()return actor end} end}
+io.open=function()return {write=function()return true end,close=function()return true end} end
+local p=dofile(PROBE);p.initialize();p.enable(true);p.update(1)
+hooks.HitReactionComponent({GetOwner=function()return actor end,GetHitReactionData=function()return {hitBodyPart=5} end,GetLastHitTimeStamp=function()return 12 end})
+assert(p.status().native_reaction_part==5)
+assert(p.status().native_reaction_time==12)
+assert(p.status().body_zone=='unknown' and p.status().animation_control=='unverified')
+assert(p.status().cripple_records_available)
+''')
     def test_opt_in_actor_filter_bounded_hits_and_no_entity_retention(self):
         try: lua=LuaHarness()
         except RuntimeError as error: self.skipTest(str(error))
@@ -70,6 +90,6 @@ callbacks.onInit();callbacks.onOverlayOpen()
 clicked='NPC-Erfassung starten';callbacks.onDraw();clicked=nil
 callbacks.onUpdate(.5);text={};callbacks.onDraw()
 local shown=table.concat(text,';')
-assert(shown:find('NPC-Meilenstein Build 0.0.3',1,true))
+assert(shown:find('NPC-Meilenstein Build 0.0.4',1,true))
 assert(shown:find('NPC-Erfassung: aktiv',1,true))
 ''')

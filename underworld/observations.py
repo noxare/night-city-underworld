@@ -11,7 +11,8 @@ MAX_ACTORS = 512
 REQUIRED = {'schema_version', 'session_id', 'identity_scope', 'observed_hits',
             'collider_tags', 'body_zone', 'animation_control', 'updated_at'}
 FLAGS = {'enabled', 'hit_observer_registered', 'player_loaded', 'target_api_available', 'target_active'}
-OPTIONAL = FLAGS | {'entity_id', 'last_hit_source', 'last_error'}
+FLAGS |= {'reaction_observer_registered', 'cripple_records_available'}
+OPTIONAL = FLAGS | {'entity_id', 'last_hit_source', 'last_error', 'native_reaction_part', 'native_reaction_time', 'native_reaction_source', 'reaction_mapping_profile'}
 
 
 def validate(value: object) -> dict:
@@ -46,6 +47,17 @@ def validate(value: object) -> dict:
         raise ValueError('invalid hit provenance')
     if 'last_error' in value and (not isinstance(value['last_error'], str) or len(value['last_error']) > 512):
         raise ValueError('invalid probe error')
+    if 'native_reaction_part' in value:
+        part=value['native_reaction_part']
+        if type(part) is not int or not 0 <= part <= 6:
+            raise ValueError('invalid native reaction group')
+        stamp=value.get('native_reaction_time')
+        if type(stamp) not in (int,float) or not math.isfinite(stamp) or stamp < 0:
+            raise ValueError('invalid reaction timestamp')
+        if value.get('native_reaction_source') != 'HitReactionComponent.SendDataToAIBehavior' or value.get('reaction_mapping_profile') != '2.11-script-unverified-on-2.5':
+            raise ValueError('missing reaction provenance')
+    elif any(key in value for key in ('native_reaction_time','native_reaction_source','reaction_mapping_profile')):
+        raise ValueError('incomplete reaction evidence')
     return value
 
 

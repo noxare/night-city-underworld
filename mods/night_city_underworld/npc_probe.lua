@@ -10,6 +10,10 @@ local function clearTarget()
     snapshot.observed_hits=0
     snapshot.collider_tags={}
     snapshot.last_hit_source=nil
+    snapshot.native_reaction_part=nil
+    snapshot.native_reaction_time=nil
+    snapshot.native_reaction_source=nil
+    snapshot.reaction_mapping_profile=nil
 end
 
 function Probe.enable(value)
@@ -41,6 +45,31 @@ function Probe.initialize()
             if not readable then snapshot.last_error='Hit-Daten nicht lesbar'; Probe.dirty=true end
         end)
     end)
+    -- Observe the native reaction separately: it is not assumed to be the same OnHit.
+    local reactionOK=pcall(function()
+        ObserveAfter('HitReactionComponent','SendDataToAIBehavior',function(component)
+            if not Probe.enabled or not snapshot.entity_id then return end
+            pcall(function()
+                local owner=component:GetOwner()
+                if not owner or tostring(owner:GetEntityID().hash) ~= snapshot.entity_id then return end
+                local data=component:GetHitReactionData()
+                local part=tonumber(data.hitBodyPart)
+                local stamp=tonumber(component:GetLastHitTimeStamp())
+                if not part or not stamp or part < 0 or part > 6 then return end
+                snapshot.native_reaction_part=part
+                snapshot.native_reaction_time=stamp
+                snapshot.native_reaction_source='HitReactionComponent.SendDataToAIBehavior'
+                snapshot.reaction_mapping_profile='2.11-script-unverified-on-2.5'
+                Probe.dirty=true
+            end)
+        end)
+    end)
+    snapshot.reaction_observer_registered=reactionOK
+    local recordsOK,records=pcall(function()
+        return TweakDB:GetRecord('BaseStatusEffect.CrippledLegLeft') ~= nil
+            and TweakDB:GetRecord('BaseStatusEffect.CrippledLegRight') ~= nil
+    end)
+    snapshot.cripple_records_available=recordsOK and records or false
     Probe.registered=ok
     snapshot.hit_observer_registered=ok
     if not ok then snapshot.last_error='Trefferbeobachtung nicht verfuegbar' end
