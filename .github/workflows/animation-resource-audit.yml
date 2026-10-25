@@ -1,0 +1,38 @@
+name: Audit installed animation resources
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/animation-resource-audit.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  inspect:
+    runs-on: [self-hosted, Windows, X64]
+    timeout-minutes: 12
+    steps:
+      - name: Prepare verified isolated WolvenKit Console and inspect CLI
+        shell: powershell -NoProfile -ExecutionPolicy Bypass -File {0}
+        run: |
+          $ErrorActionPreference='Stop'
+          $root=Join-Path $env:LOCALAPPDATA 'NightCityUnderworld\tools\WolvenKit-9.1.0'
+          New-Item -ItemType Directory -Force -Path $root|Out-Null
+          $zip=Join-Path $root 'console.zip'
+          $expected='7caf49cdf0f478b484b1a5a27e5aef261b879fabea7e72e33ca60eff3b834f4f'
+          if(-not(Test-Path $zip) -or (Get-FileHash $zip -Algorithm SHA256).Hash.ToLower() -ne $expected){
+            Invoke-WebRequest -UseBasicParsing -Uri 'https://github.com/WolvenKit/WolvenKit/releases/download/9.1.0/WolvenKit.Console-9.1.0.zip' -OutFile $zip
+          }
+          if((Get-FileHash $zip -Algorithm SHA256).Hash.ToLower() -ne $expected){throw 'Official WolvenKit archive checksum mismatch'}
+          $bin=Join-Path $root 'bin'
+          if(-not(Test-Path $bin)){Expand-Archive -LiteralPath $zip -DestinationPath $bin}
+          $tool=@(Get-ChildItem $bin -Filter WolvenKit.Console.exe -File -Recurse|Select-Object -First 1)
+          if($tool.Count -ne 1){throw 'Console executable not found'}
+          $cli=$tool[0].FullName
+          Write-Host ('Verified CLI: '+$cli)
+          & $cli --help
+          & $cli unbundle --help
+          & $cli convert --help
+          & $cli list --help
+          Write-Host ('List help exit code: '+$LASTEXITCODE)
+          Write-Host 'Tool-only setup complete; no game archive modified or extracted.'
+          exit 0
