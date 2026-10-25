@@ -18,8 +18,9 @@ local commandActive=false
 AIbehaviorUniqueActiveCommandList={IsActionCommandById=function()return commandActive end}
 local sent=0;local pos={x=0,y=0,z=0}
 local controller={SendCommand=function(_,cmd)assert(cmd.ignoreNavigation==false);sent=sent+1;lastMovement=cmd.movementType end,CancelCommand=function()end}
+local policyMovement=nil
 local weights={}
-local actor={IsAttached=function()return true end,GetAIControllerComponent=function()return controller end,GetWorldPosition=function()return pos end}
+local actor={GetMovePolicesComponent=function()return {ChangeMovementType=function(_,kind)policyMovement=kind end}end,IsAttached=function()return true end,GetAIControllerComponent=function()return controller end,GetWorldPosition=function()return pos end}
 local player={GetWorldPosition=function()return {x=0,y=0,z=0}end,GetWorldForward=function()return {x=1,y=0}end,GetWorldOrientation=function()return {}end}
 local target={IsNPC=function()return true end,IsCrowd=function()return true end,GetRecordID=function()return 'crowd-record'end}
 local s={IsReady=function()return true end,IsPopulated=function()return false end,
@@ -42,7 +43,7 @@ click('Eigenen Test-NPC erzeugen');assert(created==1)
 t.update(2);assert(sent==1);pos.x=2;t.update(.1);assert(t.distance==2)
 click('Test-NPC gehen lassen (6 m)');assert(sent==2)
 click('Eigenen Test-NPC erzeugen');assert(created==1)
-click('Flucht vom Spieler testen');assert(lastMovement==moveMovementType.Run)
+click('Flucht vom Spieler testen');assert(lastMovement==moveMovementType.Run and policyMovement==moveMovementType.Run)
 click('Linkes Bein: nativen Effekt anwenden');assert(applied==1 and lastMovement==moveMovementType.Run)
 click('Flucht vom Spieler testen');assert(lastMovement==moveMovementType.Run and applied==2)
 assert(t.legEffects.Left and t.intent=='flee')

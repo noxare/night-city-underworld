@@ -24,7 +24,7 @@ function Test.cleanup()
     -- The tag is reserved exclusively for this module.
     s:DeleteTagged(tag)
     Test.id=nil;Test.age=0;Test.walkStarted=false;Test.command=nil;Test.origin=nil;Test.distance=0;Test.legEffects={};Test.intent='walk'
-    Test.wrapperState=nil;Test.speed=nil;Test.lastPosition=nil;Test.commandAge=nil;Test.motionState=nil;Test.lastInjuredSide=nil
+    Test.wrapperState=nil;Test.speed=nil;Test.lastPosition=nil;Test.commandAge=nil;Test.motionState=nil;Test.commandState=nil;Test.policyState=nil;Test.lastInjuredSide=nil
     Test.message='Test-NPC entfernt'
 end
 local function spawn()
@@ -99,6 +99,12 @@ move=function(intent)
     command.useStart=true;command.useStop=true
     controller:SendCommand(command)
     Test.command=command
+    -- A command intent alone may leave the existing crowd movement policy unchanged.
+    -- Source: AIControl.MakeFollower; only our disposable clone is modified.
+    local policyOk,policyErr=pcall(function()
+        actor:GetMovePolicesComponent():ChangeMovementType(command.movementType)
+    end)
+    Test.policyState=policyOk and 'Bewegungspolicy aktualisiert' or 'Policyfehler: '..tostring(policyErr)
     Test.intent=intent
     Test.wrapperBoundToCommand=false;Test.commandAge=0;Test.motionState='Ausfuehrung noch nicht bestaetigt';Test.diagnosticAfter=0
     Test.origin={x=position.x,y=position.y,z=position.z}
@@ -179,6 +185,7 @@ function Test.draw(overlay)
     ImGui.Text('Nur auf freier, ebener Flaeche starten. Kein Kampf wird ausgeloest.')
     ImGui.Text(Test.message)
     if Test.record then ImGui.Text('NPC-Vorlage: '..Test.record) end
+    if Test.policyState then ImGui.Text(Test.policyState) end
     if Test.commandState then ImGui.Text('Bewegungsbefehl: '..Test.commandState) end
     if Test.motionState then ImGui.Text(Test.motionState) end
     if Test.wrapperState then ImGui.Text(Test.wrapperState) end
