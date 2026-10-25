@@ -69,7 +69,7 @@ move=function(intent)
     local command=AIMoveToCommand.new()
     command.movementTarget=target
     local injured=Test.legEffects and (Test.legEffects.Left or Test.legEffects.Right)
-    command.movementType=(intent=='flee' and not injured) and moveMovementType.Run or moveMovementType.Walk
+    command.movementType=intent=='flee' and moveMovementType.Run or moveMovementType.Walk
     command.desiredDistanceFromTarget=.5
     command.finishWhenDestinationReached=true
     command.ignoreNavigation=false
@@ -80,7 +80,7 @@ move=function(intent)
     restoreLegEffects(actor)
     Test.origin={x=position.x,y=position.y,z=position.z}
     Test.distance=0;Test.walkStarted=true
-    Test.message=intent=='flee' and (injured and 'Fluchtziel + Beineffekt aktiv; Walk-Rueckfall, Humpeln noch unbestaetigt' or 'Unverletzte Flucht: Laufbefehl gesendet') or 'Gehbefehl gesendet; Bewegung wird gemessen'
+    Test.message=intent=='flee' and (injured and 'Flucht-Laufbefehl + Beineffekt angefordert; verletzte Gangart noch unbestaetigt' or 'Unverletzte Flucht: Laufbefehl gesendet') or 'Gehbefehl gesendet; Bewegung wird gemessen'
 end
 walk=function()move('walk')end
 local function effect(side,remove)
@@ -129,7 +129,7 @@ function Test.draw(overlay)
     if ImGui.Button('Eigenen Test-NPC erzeugen') then run(spawn) end
     if Test.id then
         if ImGui.Button('Flucht vom Spieler testen') then run(function()move('flee')end) end
-        ImGui.Text('Verletzte Bewegung: native Beineffekte + Walk-Rueckfall; kein Humpel-Nachweis')
+        ImGui.Text('Flucht fordert Run an; Beineffekte bleiben separat aktiv. Verletzte Gangart unbestaetigt.')
         if ImGui.Button('Test-NPC gehen lassen (6 m)') then run(walk) end
         if ImGui.Button('Linkes Bein: nativen Effekt anwenden') then run(function()effect('Left',false)end) end
         if ImGui.Button('Rechtes Bein: nativen Effekt anwenden') then run(function()effect('Right',false)end) end
