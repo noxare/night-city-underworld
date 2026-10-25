@@ -5,7 +5,7 @@
 - PR #4 merged. Windows CI: 20 tests passed, 2 explicit system-Lua skips. Real Lua-client-to-Python/SQLite integration passed separately on the development host.
 - Deployment succeeded: https://github.com/noxare/night-city-underworld/actions/runs/40157298545 . Runtime installed outside the checkout; separate Python worker started and returned a live `snapshot` acknowledgement from the deployed mailbox (reputation 0, no events).
 - Lua files hot-deployed with backup; no game restart or framework change. User told to choose CET Reload all mods, close/reopen overlay, confirm Bridge 0.0.2 and Python-Kern: verbunden, then click Kontakt helfen.
-- Worker persistence after CI cleanup and actual CET-originating BRIDGE_ACK require fresh read-only diagnostics. Do not infer the in-game roundtrip from deployment's synthetic snapshot. Start/stop helpers: LOCALAPPDATA/NightCityUnderworld. Campaign synchronization still pending.
+- Post-deployment read-only verification succeeded: https://github.com/noxare/night-city-underworld/actions/runs/40157376210 . Worker process alive after CI cleanup, version 0.0.2, heartbeat age ~0.33 seconds. Latest response was still deployment's synthetic snapshot; no CET-originating BRIDGE_ACK confirmed yet. Do not infer the in-game roundtrip from deployment verification. Start/stop helpers: LOCALAPPDATA/NightCityUnderworld. Campaign synchronization still pending.
 
 
 ## 2026-10-25 Bridge 0.0.2 implementation
