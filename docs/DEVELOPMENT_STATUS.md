@@ -1,5 +1,14 @@
 # Development and crash recovery status
 
+## Animation asset investigation — active milestone
+
+- Installed WolvenKit GUI found, no standalone console initially. Official WolvenKit9.1 Console is now provisioned under LOCALAPPDATA/NightCityUnderworld/tools with release SHA-256 verification. Actual binary is WolvenKit.CLI.exe.
+- Console requires .NET10; system has6/9. Official .NET10.0.14 runtime was installed only in the tool folder with Microsoft release-metadata SHA-512 verification. No system runtime or game archive modifications.
+- Actual installed CLI help confirmed: unbundle supports -p/-o/-gp/-r; JSON conversion is convert serialize, not legacy convert -s. Successful tooling run: https://github.com/noxare/night-city-underworld/actions/runs/40232380146 . Long-path support is disabled; audit uses a shortened isolated output path rather than changing OS policy.
+- Bounded extraction/manifest helper and two tests implemented. It searches exact hit_reactions/wounded_entry_se behavior and humanoid graph basenames, preserves archive provenance, limits size/time and keeps original/converted game assets local only.
+- Installed-resource audit: https://github.com/noxare/night-city-underworld/actions/runs/40232599116 . Result must be inspected before claiming a native injury behavior path is resolved. No new limp implementation or visual verification is claimed by this tooling work.
+
+
 ## NPC observation package installed — 2026-10-25
 
 - PR #6 merged as 4149c58. GUI build 0.0.3 / wire version 0.0.2 integrates opt-in target/hit telemetry, session-scoped observation persistence and dashboard 0.2.0.
