@@ -1,0 +1,45 @@
+name: Audit installed animation tooling
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/animation-tool-audit.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  inspect:
+    runs-on: [self-hosted, Windows, X64]
+    timeout-minutes: 5
+    steps:
+      - name: Locate supported tools without modifying game files
+        shell: powershell -NoProfile -ExecutionPolicy Bypass -File {0}
+        run: |
+          $ErrorActionPreference='Stop'
+          $game='H:\SteamLibrary\steamapps\common\Cyberpunk 2077'
+          $exe=Join-Path $game 'bin\x64\Cyberpunk2077.exe'
+          if(Test-Path $exe){Write-Host ('Game executable version: '+(Get-Item $exe).VersionInfo.FileVersion)}
+          $found=@()
+          foreach($name in @('WolvenKit.CLI','WolvenKit.Console','WolvenKit','dotnet','winget')){
+            $command=Get-Command $name -ErrorAction SilentlyContinue
+            if($command){Write-Host ('Tool '+$name+': '+$command.Source);if($name -like 'WolvenKit*'){$found+=$command.Source}}
+          }
+          $roots=@((Join-Path $env:LOCALAPPDATA 'WolvenKit'),(Join-Path $env:LOCALAPPDATA 'Programs\WolvenKit'),(Join-Path $env:ProgramFiles 'WolvenKit'))
+          foreach($root in $roots){
+            if(Test-Path $root){
+              Get-ChildItem $root -File -Filter '*WolvenKit*.exe' -Recurse -ErrorAction SilentlyContinue | Select-Object -First 12 | ForEach-Object {
+                Write-Host ('WolvenKit candidate: '+$_.FullName);$found+=$_.FullName
+              }
+            }
+          }
+          $cli=@($found|Select-Object -Unique|Where-Object{[IO.Path]::GetFileName($_) -match '(CLI|Console)'})
+          foreach($tool in $cli){
+            Write-Host ('CLI help: '+$tool)
+            & $tool --help
+          }
+          Write-Host ('CLI candidates: '+$cli.Count)
+          $archives=Join-Path $game 'archive\pc\content'
+          if(Test-Path $archives){
+            $files=@(Get-ChildItem $archives -File -Filter '*.archive')
+            Write-Host ('Game archives present: '+$files.Count)
+          }
+          Write-Host 'Read-only audit finished. No animation or game file changed.'
