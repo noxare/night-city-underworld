@@ -23,6 +23,7 @@ Gangs compete over territory, resources and technologies, NPCs develop relations
 - [Runnable local event bridge prototype](docs/LOCAL_BRIDGE.md)
 - [Current evidence and next steps](docs/DEVELOPMENT_STATUS.md)
 - [First CET prototype: in-game test instructions](docs/INGAME_TEST.md)
+- [CET-to-Python Bridge 0.0.2: test and restart playbook](docs/BRIDGE_TEST.md)
 
 ## Licensing and attribution
 Community fan project; not affiliated with CD PROJEKT RED. The repository's LICENSE governs original contributions only. Third-party mods, frameworks, game content and assets retain their own licenses and usage conditions.
