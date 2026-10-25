@@ -90,6 +90,6 @@ callbacks.onInit();callbacks.onOverlayOpen()
 clicked='NPC-Erfassung starten';callbacks.onDraw();clicked=nil
 callbacks.onUpdate(.5);text={};callbacks.onDraw()
 local shown=table.concat(text,';')
-assert(shown:find('NPC-Meilenstein Build 0.0.4',1,true))
+assert(shown:find('NPC-Meilenstein Build 0.0.5',1,true))
 assert(shown:find('NPC-Erfassung: aktiv',1,true))
 ''')
