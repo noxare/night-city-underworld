@@ -1,5 +1,14 @@
 # Development and crash recovery status
 
+## NPC observation package installed — 2026-10-25
+
+- PR #6 merged as 4149c58. GUI build 0.0.3 / wire version 0.0.2 integrates opt-in target/hit telemetry, session-scoped observation persistence and dashboard 0.2.0.
+- Windows dashboard deployment succeeded: https://github.com/noxare/night-city-underworld/actions/runs/40216909690 . Bridge deployment including controlled worker restart and owned Lua module installation succeeded: https://github.com/noxare/night-city-underworld/actions/runs/40216909652 .
+- No user game restart performed. New Lua module loads on a subsequent CET reload; existing active Lua state is not assumed to have changed automatically.
+- Automated local tests cover raw snapshot ingestion through the observation DB to dashboard output, probe opt-in/cleanup/filtering/budgets, injury rules and existing bridge regression. Actual 2.5 hit callback delivery remains unverified until genuine telemetry arrives.
+- No body-zone mapping or forced injury animation is enabled. Injury reducer is a tested foundation, not proof of in-game limping. Existing demo data and game saves remain separate.
+
+
 ## 2026-10-25 bundled NPC observation implementation
 
 - User verified the earlier CET-to-Python event path and shipment/clinic chain in the dashboard. Earlier entries below saying no CET acknowledgement was confirmed are historical.

@@ -24,6 +24,12 @@ jobs:
           }
           $log=Join-Path $cet 'cyber_engine_tweaks.log'
           if(Test-Path $log){Write-Host 'CET loader log:';Get-Content $log -Tail 200}
+          try {
+            $dashboard=Invoke-RestMethod -Uri 'http://127.0.0.1:8765/api/state' -TimeoutSec 3
+            Write-Host ('Dashboard version: '+$dashboard.version)
+            Write-Host ('Observation store status: '+$dashboard.observations.status)
+            Write-Host ('Observed actor rows: '+@($dashboard.observations.actors).Count)
+          } catch { Write-Host ('Dashboard diagnostics unavailable: '+$_.Exception.Message) }
           $mod=Join-Path $cet 'mods\night_city_underworld'
           $healthFile=Join-Path $mod 'bridge-status.json'
           if(Test-Path $healthFile){
