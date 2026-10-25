@@ -1,0 +1,29 @@
+name: Read CET prototype diagnostics
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/verify-cet-prototype.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  inspect:
+    runs-on: [self-hosted, Windows, X64]
+    timeout-minutes: 3
+    steps:
+      - name: Read CET loader and prototype logs without changes
+        shell: powershell -NoProfile -ExecutionPolicy Bypass -File {0}
+        run: |
+          $ErrorActionPreference='Stop'
+          $game='H:\SteamLibrary\steamapps\common\Cyberpunk 2077'
+          $cet=Join-Path $game 'bin\x64\plugins\cyber_engine_tweaks'
+          Write-Host ('Game running: '+[bool](Get-Process Cyberpunk2077 -ErrorAction SilentlyContinue))
+          foreach ($rel in @('bin\x64\version.dll','bin\x64\plugins\cyber_engine_tweaks.asi')) {
+            $file=Join-Path $game $rel
+            if(Test-Path $file){$item=Get-Item $file;Write-Host ($rel+' version='+$item.VersionInfo.FileVersion+' modified='+$item.LastWriteTime+' bytes='+$item.Length)}
+          }
+          $log=Join-Path $cet 'cyber_engine_tweaks.log'
+          if(Test-Path $log){Write-Host 'CET loader log:';Get-Content $log -Tail 200}
+          $mod=Join-Path $cet 'mods\night_city_underworld'
+          Get-ChildItem $mod -File -ErrorAction SilentlyContinue | ForEach-Object {Write-Host ('Mod file '+$_.Name+' bytes='+$_.Length+' modified='+$_.LastWriteTime)}
+          Get-ChildItem $cet -Filter '*underworld*.log' -File -Recurse -ErrorAction SilentlyContinue | Select-Object -First 3 | ForEach-Object {Write-Host ('Mod log '+$_.Name);Get-Content $_.FullName -Tail 60}
