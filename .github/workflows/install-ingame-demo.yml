@@ -1,0 +1,44 @@
+name: Install Underworld in-game prototype
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'mods/night_city_underworld/**'
+      - 'scripts/install_cet_demo.py'
+      - '.github/workflows/install-ingame-demo.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: underworld-game-install
+  cancel-in-progress: false
+jobs:
+  install:
+    runs-on: [self-hosted, Windows, X64]
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test prototype installer
+        shell: powershell -NoProfile -ExecutionPolicy Bypass -File {0}
+        run: |
+          python -m unittest discover -s tests -p test_cet_installer.py -v
+          if ($LASTEXITCODE -ne 0) { throw 'Installer tests failed' }
+      - name: Install while game is stopped and inspect CET evidence
+        shell: powershell -NoProfile -ExecutionPolicy Bypass -File {0}
+        run: |
+          $ErrorActionPreference='Stop'
+          if (Get-Process Cyberpunk2077 -ErrorAction SilentlyContinue) {
+            throw 'Game is running. Close it before retrying this installation. Nothing installed.'
+          }
+          $game='H:\SteamLibrary\steamapps\common\Cyberpunk 2077'
+          $backups=Join-Path ([Environment]::GetFolderPath('MyDocuments')) 'Underworld-ModBackups'
+          python scripts/install_cet_demo.py --game $game --backup-root $backups
+          if ($LASTEXITCODE -ne 0) { throw 'Underworld installation failed' }
+          $cet=Join-Path $game 'bin\x64\plugins\cyber_engine_tweaks'
+          $log=Join-Path $cet 'cyber_engine_tweaks.log'
+          if (Test-Path $log) {
+            Write-Host ('Existing CET log modified: '+(Get-Item $log).LastWriteTime)
+            Get-Content $log -Tail 25
+          }
+          Write-Host 'Installed. No game launch or visual verification has occurred.'
+          Write-Host 'Start Cyberpunk normally and open CET to test Night City: Underworld - Prototype.'

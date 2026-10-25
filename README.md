@@ -22,6 +22,7 @@ Gangs compete over territory, resources and technologies, NPCs develop relations
 - [Development playbooks and model routing](docs/PLAYBOOKS.md)
 - [Runnable local event bridge prototype](docs/LOCAL_BRIDGE.md)
 - [Current evidence and next steps](docs/DEVELOPMENT_STATUS.md)
+- [First CET prototype: in-game test instructions](docs/INGAME_TEST.md)
 
 ## Licensing and attribution
 Community fan project; not affiliated with CD PROJEKT RED. The repository's LICENSE governs original contributions only. Third-party mods, frameworks, game content and assets retain their own licenses and usage conditions.
