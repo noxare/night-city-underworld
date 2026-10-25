@@ -16,7 +16,8 @@ local chosen,deleted,applied,removed,created=nil,0,0,0,0
 local lastMovement=nil
 local sent=0;local pos={x=0,y=0,z=0}
 local controller={SendCommand=function(_,cmd)assert(cmd.ignoreNavigation==false);sent=sent+1;lastMovement=cmd.movementType end,CancelCommand=function()end}
-local actor={GetAIControllerComponent=function()return controller end,GetWorldPosition=function()return pos end}
+local weights={}
+local actor={IsAttached=function()return true end,GetAIControllerComponent=function()return controller end,GetWorldPosition=function()return pos end}
 local player={GetWorldPosition=function()return {x=0,y=0,z=0}end,GetWorldForward=function()return {x=1,y=0}end,GetWorldOrientation=function()return {}end}
 local target={IsNPC=function()return true end,IsCrowd=function()return true end,GetRecordID=function()return 'crowd-record'end}
 local s={IsReady=function()return true end,IsPopulated=function()return false end,
@@ -30,6 +31,7 @@ WorldPosition={new=function()return {SetVector4=function()end}end};AIPositionSpe
 Vector4={new=function()return {}end};DynamicEntitySpec={new=function()return {}end}
 TweakDB={GetRecord=function()return {}end}
 StatusEffectHelper={ApplyStatusEffect=function(a)assert(a==actor);applied=applied+1 end}
+AnimationControllerComponent={SetAnimWrapperWeightOnOwnerAndItems=function(a,name,weight)assert(a==actor);weights[name]=weight end}
 registerForEvent=nil;print=function()end
 ImGui={Separator=function()end,Text=function()end,Button=function(x)return x==chosen end}
 local t=dofile(MODULE)
@@ -42,7 +44,11 @@ click('Flucht vom Spieler testen');assert(lastMovement==moveMovementType.Run)
 click('Linkes Bein: nativen Effekt anwenden');assert(applied==1 and lastMovement==moveMovementType.Run)
 click('Flucht vom Spieler testen');assert(lastMovement==moveMovementType.Run and applied==2)
 assert(t.legEffects.Left and t.intent=='flee')
+assert(weights.woundedLocomotion_l_leg==1 and weights.woundedLocomotion_r_leg==0)
+click('Rechtes Bein: nativen Effekt anwenden')
+assert(weights.woundedLocomotion_l_leg==0 and weights.woundedLocomotion_r_leg==1)
 click('Beineffekte entfernen');assert(removed==2 and lastMovement==moveMovementType.Run)
 assert(not t.legEffects.Left and not t.legEffects.Right)
+assert(weights.woundedLocomotion_l_leg==0 and weights.woundedLocomotion_r_leg==0)
 t.update(61);assert(deleted==1 and t.id==nil)
 ''')

@@ -3,16 +3,24 @@ local Test={message='Bereit: generischen Crowd-NPC ansehen',age=0,id=nil}
 local walk
 local move
 local restoreLegEffects
+local applyInjuryWrappers
 local tag=CName.new('underworld_injury_test')
 local function system() return Game.GetDynamicEntitySystem() end
 local function owned()
     if not Test.id then return nil end
     local s=system()
     if not s:IsTagged(Test.id,tag) then error('Test-NPC Eigentum nicht bestaetigt') end
-    return s:GetEntity(Test.id)
+    local actor=s:GetEntity(Test.id)
+    if actor and not actor:IsAttached() then return nil end
+    return actor
 end
 function Test.cleanup()
     local s=system()
+    -- Reset only the owned clone, then delete even if a wrapper reset fails.
+    pcall(function()
+        local actor=owned()
+        if actor then Test.legEffects={};applyInjuryWrappers(actor) end
+    end)
     -- The tag is reserved exclusively for this module.
     s:DeleteTagged(tag)
     Test.id=nil;Test.age=0;Test.walkStarted=false;Test.command=nil;Test.origin=nil;Test.distance=0;Test.legEffects={};Test.intent='walk'
@@ -42,10 +50,22 @@ local function spawn()
     Test.id=s:CreateEntity(spec);Test.age=0;Test.walkStarted=false;Test.distance=0;Test.origin=nil;Test.legEffects={};Test.intent='walk'
     Test.message='Test-NPC angefordert; Spawn erfolgt asynchron. Automatische Entfernung nach 60 s.'
 end
+applyInjuryWrappers=function(actor)
+    local left=Test.legEffects and Test.legEffects.Left
+    local right=Test.legEffects and Test.legEffects.Right
+    -- Only one locomotion wrapper at a time; latest selected leg has priority.
+    if left and right then left=Test.lastInjuredSide~='Right';right=not left end
+    Test.wrapperState='Native Wrapper-Anbindung wird versucht'
+    -- Names verified in installed wounded_entry_se.behavior; method follows native task.
+    AnimationControllerComponent.SetAnimWrapperWeightOnOwnerAndItems(actor,CName.new('woundedLocomotion_l_leg'),left and 1.0 or 0.0)
+    AnimationControllerComponent.SetAnimWrapperWeightOnOwnerAndItems(actor,CName.new('woundedLocomotion_r_leg'),right and 1.0 or 0.0)
+    Test.wrapperState=(left or right) and 'Verletzte Bein-Wrapper angefordert; sichtbares Ergebnis noch zu pruefen' or 'Bein-Wrapper auf 0 zurueckgesetzt'
+end
 restoreLegEffects=function(actor)
     for side,active in pairs(Test.legEffects or {}) do
         if active then StatusEffectHelper.ApplyStatusEffect(actor,TweakDBID.new('BaseStatusEffect.CrippledLeg'..side)) end
     end
+    applyInjuryWrappers(actor)
 end
 move=function(intent)
     local actor=owned()
@@ -79,8 +99,8 @@ move=function(intent)
     Test.intent=intent
     restoreLegEffects(actor)
     Test.origin={x=position.x,y=position.y,z=position.z}
-    Test.distance=0;Test.walkStarted=true
-    Test.message=intent=='flee' and (injured and 'Flucht-Laufbefehl + Beineffekt angefordert; verletzte Gangart noch unbestaetigt' or 'Unverletzte Flucht: Laufbefehl gesendet') or 'Gehbefehl gesendet; Bewegung wird gemessen'
+    Test.distance=0;Test.walkStarted=true;Test.lastPosition=nil;Test.speed=0
+    Test.message=intent=='flee' and (injured and 'Flucht-Laufbefehl + nativer Bein-Wrapper angefordert; Wirkung noch pruefen' or 'Unverletzte Flucht: Laufbefehl gesendet') or 'Gehbefehl gesendet; Bewegung wird gemessen'
 end
 walk=function()move('walk')end
 local function effect(side,remove)
@@ -93,8 +113,9 @@ local function effect(side,remove)
     elseif not Test.command then StatusEffectHelper.ApplyStatusEffect(actor,id) end
     Test.legEffects=Test.legEffects or {}
     Test.legEffects[side]=not remove
+    if not remove then Test.lastInjuredSide=side end
     -- Replace our active movement command after every injury-state transition.
-    if Test.command then move(Test.intent or 'walk') end
+    if Test.command then move(Test.intent or 'walk') else applyInjuryWrappers(actor) end
     Test.message=remove and 'Entfernung angefordert; Gangbild beobachten' or 'Nativer Beinstatuseffekt angefordert; Animation ist noch zu pruefen'
 end
 local function run(fn)
@@ -108,12 +129,17 @@ function Test.update(delta)
     if Test.age>=60 or not Game.GetPlayer() then run(Test.cleanup);return end
     if not Test.walkStarted and Test.age>1 then
         local ok,actor=pcall(owned)
-        if ok and actor then Test.walkStarted=true;run(walk) end
+        if ok and actor then run(walk) end
     end
     if Test.origin then
         pcall(function()
             local actor=owned()
             if actor then local p=actor:GetWorldPosition();local o=Test.origin
+                local last=Test.lastPosition
+                if last and delta>0 then
+                    Test.speed=math.sqrt((p.x-last.x)^2+(p.y-last.y)^2+(p.z-last.z)^2)/delta
+                end
+                Test.lastPosition={x=p.x,y=p.y,z=p.z}
                 Test.distance=math.sqrt((p.x-o.x)^2+(p.y-o.y)^2+(p.z-o.z)^2)
             end
         end)
@@ -124,12 +150,14 @@ function Test.draw(overlay)
     ImGui.Text('Nativer Verletzungstest · nur eigener Crowd-Klon')
     ImGui.Text('Nur auf freier, ebener Flaeche starten. Kein Kampf wird ausgeloest.')
     ImGui.Text(Test.message)
+    if Test.wrapperState then ImGui.Text(Test.wrapperState) end
+    if Test.speed then ImGui.Text(string.format('Gemessene Geschwindigkeit: %.2f m/s',Test.speed)) end
     if Test.origin then ImGui.Text(string.format('Gemessene Wegstrecke: %.2f m',Test.distance or 0)) end
     if not overlay then return end
     if ImGui.Button('Eigenen Test-NPC erzeugen') then run(spawn) end
     if Test.id then
         if ImGui.Button('Flucht vom Spieler testen') then run(function()move('flee')end) end
-        ImGui.Text('Flucht fordert Run an; Beineffekte bleiben separat aktiv. Verletzte Gangart unbestaetigt.')
+        ImGui.Text('Flucht fordert Run an; nativer Verletzungs-Wrapper bleibt aktiv. Animation und Tempo noch pruefen.')
         if ImGui.Button('Test-NPC gehen lassen (6 m)') then run(walk) end
         if ImGui.Button('Linkes Bein: nativen Effekt anwenden') then run(function()effect('Left',false)end) end
         if ImGui.Button('Rechtes Bein: nativen Effekt anwenden') then run(function()effect('Right',false)end) end
