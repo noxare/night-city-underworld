@@ -8,6 +8,7 @@ local elapsed, sequence = 0, 0
 local session = tostring(os.time()) .. '-' .. tostring({}):gsub('[^%w]', '')
 local message = 'Python-Kern wird gesucht ...'
 local position = 'Noch nicht abgefragt'
+local injuryTest = nil
 local npcProbe = nil
 local npcProbeError = nil
 
@@ -72,6 +73,8 @@ local function poll()
 end
 
 registerForEvent('onInit', function()
+    local loaded,test=pcall(require,'injury_test')
+    if loaded then injuryTest=test end
     local loaded,probe = pcall(require,'npc_probe')
     if loaded and type(probe) == 'table' then
         npcProbe=probe
@@ -171,6 +174,7 @@ registerForEvent('onDraw', function()
         else
             ImGui.Text('Zum Bedienen das CET-Overlay oeffnen.')
         end
+        if injuryTest then pcall(injuryTest.draw,overlay) end
         ImGui.Separator()
         ImGui.Text(message)
     end
