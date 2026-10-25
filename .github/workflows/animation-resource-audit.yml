@@ -42,8 +42,9 @@ jobs:
           if(-not(Test-Path $runtimeExe)){
             $metadata=Invoke-RestMethod -Uri 'https://builds.dotnet.microsoft.com/dotnet/release-metadata/10.0/releases.json'
             $release=@($metadata.releases|Where-Object {$_.'release-version' -eq $metadata.'latest-release'}|Select-Object -First 1)[0]
-            $asset=@($release.runtime.files|Where-Object {$_.rid -eq 'win-x64' -and $_.name -like '*.zip'}|Select-Object -First 1)[0]
+            $asset=@($release.runtime.files|Where-Object {$_.rid -eq 'win-x64' -and $_.name -like 'dotnet-runtime*.zip'}|Select-Object -First 1)[0]
             if(-not $asset -or ([uri]$asset.url).Host -notin @('builds.dotnet.microsoft.com','download.visualstudio.microsoft.com','ci.dot.net')){throw 'Unexpected .NET runtime asset'}
+            Write-Host ('Runtime asset: '+$asset.name+' '+$asset.url)
             $runtimeZip=Join-Path $root 'dotnet-runtime10.zip'
             Invoke-WebRequest -UseBasicParsing -Uri $asset.url -OutFile $runtimeZip
             if((Get-ArchiveHash $runtimeZip 'sha512') -ne $asset.hash.ToLower()){throw '.NET runtime checksum mismatch'}
