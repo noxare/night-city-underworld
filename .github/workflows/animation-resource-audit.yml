@@ -11,6 +11,7 @@ jobs:
     runs-on: [self-hosted, Windows, X64]
     timeout-minutes: 12
     steps:
+      - uses: actions/checkout@v4
       - name: Prepare verified isolated WolvenKit Console and inspect CLI
         shell: powershell -NoProfile -ExecutionPolicy Bypass -File {0}
         run: |
@@ -66,6 +67,12 @@ jobs:
           if($LASTEXITCODE -ne 0){throw 'Console help failed'}
           & $runtimeExe $assembly unbundle --help
           & $runtimeExe $assembly convert --help
-          & $runtimeExe $assembly list --help
-          Write-Host ('List help exit code: '+$LASTEXITCODE)
+          & $runtimeExe $assembly convert serialize --help
+          python -m unittest discover -s tests -p test_animation_audit.py -v
+          if($LASTEXITCODE -ne 0){throw 'Bounded audit tests failed'}
+          $outputRoot=Join-Path $env:LOCALAPPDATA ('NightCityUnderworld\a\r'+$env:GITHUB_RUN_ID+'-'+$env:GITHUB_RUN_ATTEMPT)
+          $game='H:\SteamLibrary\steamapps\common\Cyberpunk 2077'
+          python scripts/audit_animation_resources.py --cli $cli --game $game --output $outputRoot
+          if($LASTEXITCODE -ne 0){throw 'Animation resource audit failed'}
+          Write-Host ('Local audit manifest: '+(Join-Path $outputRoot 'manifest.json'))
           exit 0
