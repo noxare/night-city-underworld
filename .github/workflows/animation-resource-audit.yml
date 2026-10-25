@@ -27,7 +27,7 @@ jobs:
           if(-not(Test-Path $zip) -or (Get-ArchiveHash $zip) -ne $expected){
             Invoke-WebRequest -UseBasicParsing -Uri 'https://github.com/WolvenKit/WolvenKit/releases/download/9.1.0/WolvenKit.Console-9.1.0.zip' -OutFile $zip
           }
-          if((Get-FileHash $zip -Algorithm SHA256).Hash.ToLower() -ne $expected){throw 'Official WolvenKit archive checksum mismatch'}
+          if((Get-ArchiveHash $zip) -ne $expected){throw 'Official WolvenKit archive checksum mismatch'}
           $bin=Join-Path $root 'bin'
           if(-not(Test-Path $bin)){python -c "import zipfile,sys;zipfile.ZipFile(sys.argv[1]).extractall(sys.argv[2])" $zip $bin
             if($LASTEXITCODE -ne 0){throw 'Console extraction failed'}}
