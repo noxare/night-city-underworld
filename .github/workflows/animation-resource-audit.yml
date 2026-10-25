@@ -31,8 +31,9 @@ jobs:
           $bin=Join-Path $root 'bin'
           if(-not(Test-Path $bin)){python -c "import zipfile,sys;zipfile.ZipFile(sys.argv[1]).extractall(sys.argv[2])" $zip $bin
             if($LASTEXITCODE -ne 0){throw 'Console extraction failed'}}
-          $tool=@(Get-ChildItem $bin -Filter '*.exe' -File -Recurse|Where-Object {$_.Name -match '^(WolvenKit\.(Console|CLI)|WolvenKitConsole|wconsole)\.exe)
-          Get-ChildItem $bin -File -Filter '*.exe' -Recurse|ForEach-Object {Write-Host ('Package executable: '+$_.Name)}
+          $executables=@(Get-ChildItem $bin -Filter '*.exe' -File -Recurse)
+          $executables|ForEach-Object {Write-Host ('Package executable: '+$_.Name)}
+          $tool=@($executables|Where-Object {$_.Name -like '*WolvenKit*' -or $_.Name -like '*wconsole*'}|Select-Object -First 1)
           if($tool.Count -ne 1){throw 'Console executable not found'}
           $cli=$tool[0].FullName
           Write-Host ('Verified CLI: '+$cli)
@@ -42,17 +43,4 @@ jobs:
           & $cli convert --help
           & $cli list --help
           Write-Host ('List help exit code: '+$LASTEXITCODE)
-          Write-Host 'Tool-only setup complete; no game archive modified or extracted.'
-          exit 0
-}|Select-Object -First 1)
-          if($tool.Count -ne 1){throw 'Console executable not found'}
-          $cli=$tool[0].FullName
-          Write-Host ('Verified CLI: '+$cli)
-          & $cli --help
-          if($LASTEXITCODE -ne 0){throw 'Console help failed'}
-          & $cli unbundle --help
-          & $cli convert --help
-          & $cli list --help
-          Write-Host ('List help exit code: '+$LASTEXITCODE)
-          Write-Host 'Tool-only setup complete; no game archive modified or extracted.'
           exit 0
