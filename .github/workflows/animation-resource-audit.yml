@@ -18,8 +18,8 @@ jobs:
           $root=Join-Path $env:LOCALAPPDATA 'NightCityUnderworld\tools\WolvenKit-9.1.0'
           New-Item -ItemType Directory -Force -Path $root|Out-Null
           $zip=Join-Path $root 'console.zip'
-          function Get-ArchiveHash([string]$path) {
-            $value=python -c "import hashlib,sys;print(hashlib.sha256(open(sys.argv[1],'rb').read()).hexdigest())" $path
+          function Get-ArchiveHash([string]$path,[string]$algorithm='sha256') {
+            $value=python -c "import hashlib,sys;print(hashlib.new(sys.argv[2],open(sys.argv[1],'rb').read()).hexdigest())" $path $algorithm
             if($LASTEXITCODE -ne 0){throw 'Archive hash failed'}
             return $value.Trim()
           }
@@ -37,10 +37,25 @@ jobs:
           if($tool.Count -ne 1){throw 'Console executable not found'}
           $cli=$tool[0].FullName
           Write-Host ('Verified CLI: '+$cli)
-          & $cli --help
+          $runtimeRoot=Join-Path $root 'dotnet10'
+          $runtimeExe=Join-Path $runtimeRoot 'dotnet.exe'
+          if(-not(Test-Path $runtimeExe)){
+            $metadata=Invoke-RestMethod -Uri 'https://builds.dotnet.microsoft.com/dotnet/release-metadata/10.0/releases.json'
+            $release=@($metadata.releases|Where-Object {$_.'release-version' -eq $metadata.'latest-release'}|Select-Object -First 1)[0]
+            $asset=@($release.runtime.files|Where-Object {$_.rid -eq 'win-x64' -and $_.name -like '*.zip'}|Select-Object -First 1)[0]
+            if(-not $asset -or ([uri]$asset.url).Host -notin @('builds.dotnet.microsoft.com','download.visualstudio.microsoft.com','ci.dot.net')){throw 'Unexpected .NET runtime asset'}
+            $runtimeZip=Join-Path $root 'dotnet-runtime10.zip'
+            Invoke-WebRequest -UseBasicParsing -Uri $asset.url -OutFile $runtimeZip
+            if((Get-ArchiveHash $runtimeZip 'sha512') -ne $asset.hash.ToLower()){throw '.NET runtime checksum mismatch'}
+            python -c "import zipfile,sys;zipfile.ZipFile(sys.argv[1]).extractall(sys.argv[2])" $runtimeZip $runtimeRoot
+            if($LASTEXITCODE -ne 0){throw '.NET runtime extraction failed'}
+            Write-Host ('Isolated .NET runtime version: '+$release.runtime.version)
+          }
+          $assembly=Join-Path $tool[0].DirectoryName 'WolvenKit.CLI.dll'
+          & $runtimeExe $assembly --help
           if($LASTEXITCODE -ne 0){throw 'Console help failed'}
-          & $cli unbundle --help
-          & $cli convert --help
-          & $cli list --help
+          & $runtimeExe $assembly unbundle --help
+          & $runtimeExe $assembly convert --help
+          & $runtimeExe $assembly list --help
           Write-Host ('List help exit code: '+$LASTEXITCODE)
           exit 0
