@@ -1,0 +1,20 @@
+name: Inspect animation audit evidence
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/animation-resource-inspect.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  inspect:
+    runs-on: [self-hosted, Windows, X64]
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - name: Summarize local metadata and behavior references
+        shell: powershell -NoProfile -ExecutionPolicy Bypass -File {0}
+        run: |
+          $audit=Join-Path $env:LOCALAPPDATA 'NightCityUnderworld\a'
+          python scripts/inspect_animation_audit.py $audit
+          if($LASTEXITCODE -ne 0){throw 'Audit inspection failed'}
