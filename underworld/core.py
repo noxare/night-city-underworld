@@ -23,4 +23,8 @@ def evaluate(event: dict[str, Any]) -> Consequence:
         return Consequence(event_id, kind, npc_id, 15, "NPC remembers receiving help")
     if kind == "civilian_harmed":
         return Consequence(event_id, kind, npc_id, -20, "NPC remembers being harmed")
+    if kind == "shipment_investigated":
+        return Consequence(event_id, kind, npc_id, 0, "Shipment evidence reveals a clinic lead")
+    if kind == "clinic_discovered":
+        return Consequence(event_id, kind, npc_id, 0, "Hidden clinic contact discovered")
     raise ValueError("unsupported event kind")

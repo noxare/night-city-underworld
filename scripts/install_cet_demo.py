@@ -24,7 +24,7 @@ def install(game: Path, backup_root: Path, source: Path) -> dict:
     backup = backup_root / ('underworld-demo-' + datetime.now(timezone.utc).strftime('%Y%m%d-%H%M%S-') + uuid.uuid4().hex[:8])
     backup.mkdir(parents=True)
     target.mkdir(parents=True, exist_ok=True)
-    receipt = {'version': '0.0.1', 'target': str(target), 'files': []}
+    receipt = {'version': '0.0.2', 'target': str(target), 'files': []}
     # Complete all backups before touching an installed Lua file.
     for name in files:
         destination = target / name

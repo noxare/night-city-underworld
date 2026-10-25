@@ -1,9 +1,11 @@
-name: Install Underworld in-game prototype
+name: Install Underworld in-game bridge
 on:
   push:
     branches: [main]
     paths:
       - 'mods/night_city_underworld/**'
+      - 'underworld/**'
+      - 'scripts/start_bridge.py'
       - 'scripts/install_cet_demo.py'
       - '.github/workflows/install-ingame-demo.yml'
   workflow_dispatch:
@@ -18,27 +20,66 @@ jobs:
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
-      - name: Test prototype installer
+      - name: Verify bridge and reversible Lua installer
         shell: powershell -NoProfile -ExecutionPolicy Bypass -File {0}
         run: |
+          python -m unittest discover -s tests -p test_mailbox.py -v
+          if ($LASTEXITCODE -ne 0) { throw 'Bridge tests failed' }
           python -m unittest discover -s tests -p test_cet_installer.py -v
           if ($LASTEXITCODE -ne 0) { throw 'Installer tests failed' }
-      - name: Install while game is stopped and inspect CET evidence
+      - name: Deploy persistent runtime and start the separate worker
         shell: powershell -NoProfile -ExecutionPolicy Bypass -File {0}
         run: |
           $ErrorActionPreference='Stop'
-          if (Get-Process Cyberpunk2077 -ErrorAction SilentlyContinue) {
-            throw 'Game is running. Close it before retrying this installation. Nothing installed.'
-          }
+          $game='H:\SteamLibrary\steamapps\common\Cyberpunk 2077'
+          $mod=Join-Path $game 'bin\x64\plugins\cyber_engine_tweaks\mods\night_city_underworld'
+          $underworldRoot=Join-Path $env:LOCALAPPDATA 'NightCityUnderworld'
+          $runtime=Join-Path $underworldRoot 'bridge\0.0.2'
+          $database=Join-Path $underworldRoot 'world.sqlite3'
+          New-Item -ItemType Directory -Force -Path $runtime | Out-Null
+          Copy-Item -Path (Join-Path $env:GITHUB_WORKSPACE 'underworld') -Destination $runtime -Recurse -Force
+          Copy-Item -Path 'scripts/start_bridge.py' -Destination $runtime -Force
+          $python=(Get-Command python).Source
+          $startScript=Join-Path $runtime 'start_bridge.py'
+          $command='"{0}" "{1}" --directory "{2}" --database "{3}" --runtime "{4}"' -f $python,$startScript,$mod,$database,$runtime
+          $helper=Join-Path $underworldRoot 'Start-UnderworldBridge.cmd'
+          Set-Content -Path $helper -Value @('@echo off',$command) -Encoding ASCII
+          $stopHelper=Join-Path $underworldRoot 'Stop-UnderworldBridge.cmd'
+          Set-Content -Path $stopHelper -Value @('@echo off',($command+' --stop')) -Encoding ASCII
+          python $startScript --directory $mod --database $database --runtime $runtime
+          if ($LASTEXITCODE -ne 0) { throw 'Python worker did not start' }
+          Write-Host ('Worker launch helper: '+$helper)
+          Write-Host ('Authoritative SQLite database: '+$database)
+      - name: Hot-deploy only Lua files and verify worker roundtrip
+        shell: powershell -NoProfile -ExecutionPolicy Bypass -File {0}
+        run: |
+          $ErrorActionPreference='Stop'
           $game='H:\SteamLibrary\steamapps\common\Cyberpunk 2077'
           $backups=Join-Path $env:USERPROFILE 'Documents\Underworld-ModBackups'
           python scripts/install_cet_demo.py --game $game --backup-root $backups
-          if ($LASTEXITCODE -ne 0) { throw 'Underworld installation failed' }
-          $cet=Join-Path $game 'bin\x64\plugins\cyber_engine_tweaks'
-          $log=Join-Path $cet 'cyber_engine_tweaks.log'
-          if (Test-Path $log) {
-            Write-Host ('Existing CET log modified: '+(Get-Item $log).LastWriteTime)
-            Get-Content $log -Tail 25
+          if ($LASTEXITCODE -ne 0) { throw 'Underworld Lua deployment failed' }
+          $mod=Join-Path $game 'bin\x64\plugins\cyber_engine_tweaks\mods\night_city_underworld'
+          $request=Join-Path $mod 'bridge-request.json'
+          if (-not(Test-Path $request)) {
+            $id='deployment-'+[guid]::NewGuid().ToString('N')
+            $body=@{protocol_version=1;request_id=$id;slot='underworld-bridge-demo';timeline='v1';event=$false}|ConvertTo-Json -Compress
+            [IO.File]::WriteAllText($request,$body+[Environment]::NewLine,[Text.UTF8Encoding]::new($false))
+            $verified=$false
+            for($i=0;$i -lt 50;$i++){
+              Start-Sleep -Milliseconds 100
+              $response=Join-Path $mod 'bridge-response.json'
+              if(Test-Path $response){
+                $reply=Get-Content $response -Raw|ConvertFrom-Json
+                if($reply.request_id -eq $id -and $reply.status -eq 'snapshot'){
+                  Write-Host ('Live Python response: '+($reply|ConvertTo-Json -Compress -Depth 5))
+                  $verified=$true
+                  break
+                }
+              }
+            }
+            if(-not $verified){throw 'No snapshot acknowledgement from deployed Python worker'}
+          } else {
+            Write-Host 'Existing CET request preserved; startup heartbeat verified by launcher.'
           }
-          Write-Host 'Installed. No game launch or visual verification has occurred.'
-          Write-Host 'Start Cyberpunk normally and open CET to test Night City: Underworld - Prototype.'
+          Write-Host 'Lua files installed. In CET choose Reload all mods, then close and reopen the overlay.'
+          Write-Host 'No framework changes or game restart needed for this update. In-game acknowledgement still requires a CET click.'

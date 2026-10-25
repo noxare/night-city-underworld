@@ -1,5 +1,16 @@
 # Development and crash recovery status
 
+## 2026-10-25 Bridge 0.0.2 implementation
+
+- User confirmed Prototype 0.0.1 displayed/worked in-game. This verifies the previous CET module, not yet the new external-core bridge.
+- Replaced active Lua simulation with a thin file-IPC client. Version 0.0.2 sends a single durable request and displays only acknowledged Python/SQLite state; no optimistic reputation changes.
+- Python mailbox worker reuses LocalBridge and WorldStore, checks intel-chain preconditions, bounds messages and demo events, provides heartbeat and protects the mailbox with a single-worker lock. Replay, restart, pending CET reload, context mismatch and corrupt/partial messages are covered.
+- Local integration test executes the real Lua client, serializes actual JSON through files, processes it in Python and checks SQLite plus displayed returned values. Separate subprocess tests verify an independent Python worker and duplicate-worker rejection. The Lua harness mocks CET/ImGui and uses system Lua 5.4; actual CET acknowledgement remains a separate in-game check.
+- Demo context is explicitly isolated from campaign saves; no game-save reconciliation or real NPC actions. Old 0.0.1 journal is preserved and not silently imported.
+- Deployment now permits hot replacement of only owned Lua files while the game runs. Runtime is installed outside the CI checkout under LOCALAPPDATA/NightCityUnderworld/bridge/0.0.2; start/stop helpers live in LOCALAPPDATA/NightCityUnderworld. Worker persists beyond deployment but does not autostart after Windows reboot yet.
+- Deployment/Windows CI result must be recorded separately. User instruction after deployment: CET Reload all mods, close/reopen overlay, verify Bridge 0.0.2 / Python-Kern: verbunden. See docs/BRIDGE_TEST.md.
+
+
 ## Verified installation receipt — 2026-10-25
 
 - First CET prototype merged in PR #3 and installed on STEAMBOX. Installer and SHA-256 verification succeeded: https://github.com/noxare/night-city-underworld/actions/runs/40155690515 . Existing Underworld files are backed up under the local Documents/Underworld-ModBackups folder; stale OneDrive Documents redirection was avoided.
