@@ -18,18 +18,25 @@ jobs:
           $root=Join-Path $env:LOCALAPPDATA 'NightCityUnderworld\tools\WolvenKit-9.1.0'
           New-Item -ItemType Directory -Force -Path $root|Out-Null
           $zip=Join-Path $root 'console.zip'
+          function Get-ArchiveHash([string]$path) {
+            $value=python -c "import hashlib,sys;print(hashlib.sha256(open(sys.argv[1],'rb').read()).hexdigest())" $path
+            if($LASTEXITCODE -ne 0){throw 'Archive hash failed'}
+            return $value.Trim()
+          }
           $expected='7caf49cdf0f478b484b1a5a27e5aef261b879fabea7e72e33ca60eff3b834f4f'
-          if(-not(Test-Path $zip) -or (Get-FileHash $zip -Algorithm SHA256).Hash.ToLower() -ne $expected){
+          if(-not(Test-Path $zip) -or (Get-ArchiveHash $zip) -ne $expected){
             Invoke-WebRequest -UseBasicParsing -Uri 'https://github.com/WolvenKit/WolvenKit/releases/download/9.1.0/WolvenKit.Console-9.1.0.zip' -OutFile $zip
           }
           if((Get-FileHash $zip -Algorithm SHA256).Hash.ToLower() -ne $expected){throw 'Official WolvenKit archive checksum mismatch'}
           $bin=Join-Path $root 'bin'
-          if(-not(Test-Path $bin)){Expand-Archive -LiteralPath $zip -DestinationPath $bin}
+          if(-not(Test-Path $bin)){python -c "import zipfile,sys;zipfile.ZipFile(sys.argv[1]).extractall(sys.argv[2])" $zip $bin
+            if($LASTEXITCODE -ne 0){throw 'Console extraction failed'}}
           $tool=@(Get-ChildItem $bin -Filter WolvenKit.Console.exe -File -Recurse|Select-Object -First 1)
           if($tool.Count -ne 1){throw 'Console executable not found'}
           $cli=$tool[0].FullName
           Write-Host ('Verified CLI: '+$cli)
           & $cli --help
+          if($LASTEXITCODE -ne 0){throw 'Console help failed'}
           & $cli unbundle --help
           & $cli convert --help
           & $cli list --help
