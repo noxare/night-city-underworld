@@ -8,6 +8,8 @@ local elapsed, sequence = 0, 0
 local session = tostring(os.time()) .. '-' .. tostring({}):gsub('[^%w]', '')
 local message = 'Python-Kern wird gesucht ...'
 local position = 'Noch nicht abgefragt'
+local npcProbe = nil
+local npcProbeError = nil
 
 local function readJSON(path)
     local file = io.open(path, 'r')
@@ -70,6 +72,14 @@ local function poll()
 end
 
 registerForEvent('onInit', function()
+    local loaded,probe = pcall(require,'npc_probe')
+    if loaded and type(probe) == 'table' then
+        npcProbe=probe
+        local initialized=pcall(npcProbe.initialize)
+        if not initialized then npcProbeError='NPC-Probe konnte nicht initialisiert werden' end
+    else
+        npcProbeError='NPC-Modul nicht installiert oder nicht ladbar'
+    end
     -- Resume the durable request instead of losing it on a CET reload.
     local old = readJSON('bridge-request.json')
     if old and old.protocol_version == 1 and old.slot == slot and old.timeline == timeline
@@ -84,6 +94,10 @@ registerForEvent('onInit', function()
 end)
 registerForEvent('onUpdate', function(delta)
     if not ready then return end
+    if npcProbe then
+        local observed=pcall(npcProbe.update,delta)
+        if not observed then npcProbeError='NPC-Probe pausiert nach Lesefehler';pcall(npcProbe.enable,false) end
+    end
     elapsed = elapsed + delta
     if elapsed < 0.25 then return end
     elapsed = 0
@@ -98,6 +112,7 @@ registerForEvent('onDraw', function()
     if not ready or not visible then return end
     if ImGui.Begin('Night City: Underworld - Bridge', ImGuiWindowFlags.AlwaysAutoResize) then
         ImGui.Text('UNDERWORLD Bridge ' .. version)
+        ImGui.Text('NPC-Meilenstein Build 0.0.3 | Nur lesende Erfassung')
         ImGui.Text(connected and 'Python-Kern: verbunden' or 'Python-Kern: offline / startet')
         ImGui.Text('Separates Demo-Profil - keine Kampagnen-Synchronisierung')
         ImGui.Text('Kontakt: Mara Quinn (Testkontakt)')
@@ -111,6 +126,25 @@ registerForEvent('onDraw', function()
             ImGui.Text('Noch kein bestaetigter Zustand vom Python-Kern')
         end
         ImGui.Text('V-Position: ' .. position)
+        if npcProbe then
+            local ok,observed=pcall(npcProbe.status)
+            if ok and type(observed)=='table' then
+                ImGui.Separator()
+                ImGui.Text('NPC-Erfassung: ' .. (observed.enabled and 'aktiv' or 'aus'))
+                ImGui.Text('Identitaet nur fuer diese Spielsitzung - keine dauerhafte NPC-Zuordnung')
+                ImGui.Text('NPC-Ziel: ' .. tostring(observed.entity_id or 'kein NPC im Fadenkreuz'))
+                ImGui.Text('Beobachtete Treffer am aktuellen Ziel: ' .. tostring(observed.observed_hits or 0))
+                ImGui.Text('Treffer-Hook registriert: ' .. tostring(observed.hit_observer_registered == true))
+                ImGui.Text('Koerperzone: unbekannt | Humpel-Steuerung noch nicht bestaetigt')
+                for _,tag in ipairs(observed.collider_tags or {}) do ImGui.Text('Collider-Rohdaten: ' .. tag) end
+                if observed.last_error then ImGui.Text(observed.last_error) end
+                if overlay and ImGui.Button(observed.enabled and 'NPC-Erfassung stoppen' or 'NPC-Erfassung starten') then
+                    local toggled=pcall(npcProbe.enable,not observed.enabled)
+                    if not toggled then npcProbeError='NPC-Erfassung konnte nicht umgeschaltet werden' end
+                end
+            end
+        end
+        if npcProbeError then ImGui.Text(npcProbeError) end
         if overlay then
             if ImGui.Button('V-Position aus Spiel lesen') then
                 local ok, value = pcall(function()
