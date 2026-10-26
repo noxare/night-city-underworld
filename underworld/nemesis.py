@@ -182,6 +182,51 @@ class NemesisStore:
                               (self.namespace, event["event_id"], payload, json.dumps(response, sort_keys=True)))
             return response
 
+    def treat(self, event):
+        """Apply explicit treatment units; no inferred healing or resurrection.
+
+        Units reduce recorded injury hit counts, not engine HP. The adapter must
+        apply any native effect changes separately and verify their outcome.
+        """
+        required = {"event_id", "person_id", "zone", "amount"}
+        if not isinstance(event, dict) or set(event) != required:
+            raise ValueError("invalid treatment")
+        token(event["event_id"]); token(event["person_id"])
+        if not isinstance(event["zone"], str) or event["zone"] not in ZONES - {"unknown"}:
+            raise ValueError("invalid treatment body zone")
+        if type(event["amount"]) is not int or not 1 <= event["amount"] <= 512:
+            raise ValueError("invalid treatment amount")
+        payload = json.dumps({"treatment": event}, sort_keys=True)
+        with self._transaction():
+            old = self.conn.execute("SELECT payload,response FROM nemesis_events WHERE namespace=? AND event=?",
+                                    (self.namespace, event["event_id"])).fetchone()
+            if old:
+                if old[0] != payload:
+                    raise ValueError("conflicting treatment replay")
+                return {**json.loads(old[1]), "duplicate": True}
+            self._budget("nemesis_events", MAX_EVENTS)
+            state = self.get(event["person_id"])
+            if state["mode"] == "dead":
+                raise ValueError("dead person cannot receive treatment")
+            if state["mode"] == "spawning":
+                raise ValueError("pending spawn must reconcile before treatment")
+            zone = event["zone"]
+            before = state["hits"].get(zone, 0)
+            remaining = max(0, before - event["amount"])
+            if remaining:
+                state["hits"][zone] = remaining
+            else:
+                state["hits"].pop(zone, None)
+            state["plan"] = reaction(state["hits"])
+            state["intent"] = state["plan"]["intent"]
+            self._save(state)
+            response = {"person_id": state["person_id"], "zone": zone,
+                        "treated": before - remaining, "remaining": remaining,
+                        "plan": state["plan"], "duplicate": False}
+            self.conn.execute("INSERT INTO nemesis_events VALUES(?,?,?,?)",
+                              (self.namespace, event["event_id"], payload, json.dumps(response, sort_keys=True)))
+            return response
+
     def dematerialize(self, person, session, entity, position, *, visible, original_gone=False):
         """No original deletion: require offscreen AND confirmation original is gone."""
         if visible is not False or original_gone is not True:
