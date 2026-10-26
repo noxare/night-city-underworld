@@ -8,6 +8,9 @@ local elapsed, sequence = 0, 0
 local session = tostring(os.time()) .. '-' .. tostring({}):gsub('[^%w]', '')
 local message = 'Python-Kern wird gesucht ...'
 local position = 'Noch nicht abgefragt'
+local encounters = nil
+local encounterError = nil
+local debugTools = false -- manual clone controls are development-only
 local injuryTest = nil
 local injuryTestError = nil
 local npcProbe = nil
@@ -74,6 +77,12 @@ local function poll()
 end
 
 registerForEvent('onInit', function()
+    local autoOK,auto=pcall(require,'encounters')
+    if autoOK then
+        encounters=auto
+        local ok,err=pcall(encounters.initialize)
+        if not ok then encounterError=tostring(err) end
+    else encounterError=tostring(auto) end
     local loaded,test=pcall(require,'injury_test')
     if loaded then injuryTest=test else injuryTestError=tostring(test);print('[Underworld InjuryTest] LOAD_ERROR '..injuryTestError) end
     local loaded,probe = pcall(require,'npc_probe')
@@ -98,7 +107,11 @@ registerForEvent('onInit', function()
 end)
 registerForEvent('onUpdate', function(delta)
     if not ready then return end
-    if injuryTest then
+    if encounters then
+        local ok,err=pcall(encounters.update,delta)
+        if not ok then encounterError=tostring(err) end
+    end
+    if debugTools and injuryTest then
         local ok,err=pcall(injuryTest.update,delta)
         if not ok then injuryTestError=tostring(err) end
     end
@@ -118,80 +131,26 @@ registerHotkey('underworld_toggle', 'Underworld: Testfenster anzeigen', function
 
 registerForEvent('onDraw', function()
     if not ready or not visible then return end
-    if ImGui.Begin('Night City: Underworld - Bridge', ImGuiWindowFlags.AlwaysAutoResize) then
-        ImGui.Text('UNDERWORLD Bridge ' .. version)
-        ImGui.Text('NPC-Meilenstein Build 0.0.5 | Nur lesende Erfassung')
-        ImGui.Text(connected and 'Python-Kern: verbunden' or 'Python-Kern: offline / startet')
-        ImGui.Text('Separates Demo-Profil - keine Kampagnen-Synchronisierung')
-        ImGui.Text('Kontakt: Mara Quinn (Testkontakt)')
-        if state then
-            ImGui.Text('Ruf vom Python-Kern: ' .. state.reputation)
-            ImGui.Text('In SQLite gespeicherte Ereignisse: ' .. state.event_count .. ' / 100')
-            if state.shipment then ImGui.Text('Hinweis: illegale Cyberware-Lieferung bekannt') end
-            if state.clinic then ImGui.Text('Lieferpapiere nennen eine Hinterhof-Klinik') end
-            if state.discovered then ImGui.Text('Klinik-Kontakt entdeckt (Testdaten)') end
-        else
-            ImGui.Text('Noch kein bestaetigter Zustand vom Python-Kern')
+    if ImGui.Begin('Night City: Underworld - Nemesis', ImGuiWindowFlags.AlwaysAutoResize) then
+        ImGui.Text('Underworld Build 0.1.0-dev | Automatische Trefferreaktion')
+        ImGui.Text('Keine manuelle Spawn-/Verletzungssequenz erforderlich')
+        if encounters then
+            local value=encounters.status()
+            ImGui.Text(value.last)
+            ImGui.Text('Verfolgte Original-NPCs: '..tostring(value.tracked))
+            ImGui.Text('Direkte Treffer durch V: '..tostring(value.hits))
+            ImGui.Text('Person dauerhaft im Kern; Spielkoerper sitzungsgebunden')
+            ImGui.Text('Identisches Wiedererzeugen und Gangart noch nicht ingame bestaetigt')
+            if value.last_error then ImGui.Text(value.last_error) end
+            if value.log_error then ImGui.Text(value.log_error) end
         end
-        ImGui.Text('V-Position: ' .. position)
-        if npcProbe then
-            local ok,observed=pcall(npcProbe.status)
-            if ok and type(observed)=='table' then
-                ImGui.Separator()
-                ImGui.Text('NPC-Erfassung: ' .. (observed.enabled and 'aktiv' or 'aus'))
-                ImGui.Text('Identitaet nur fuer diese Spielsitzung - keine dauerhafte NPC-Zuordnung')
-                ImGui.Text('NPC-Ziel: ' .. tostring(observed.entity_id or 'kein NPC im Fadenkreuz'))
-                ImGui.Text('Beobachtete Treffer am aktuellen Ziel: ' .. tostring(observed.observed_hits or 0))
-                ImGui.Text('Treffer-Hook registriert: ' .. tostring(observed.hit_observer_registered == true))
-                ImGui.Text('Koerperzone: unbekannt | Humpel-Steuerung noch nicht bestaetigt')
-                for _,tag in ipairs(observed.collider_tags or {}) do ImGui.Text('Collider-Rohdaten: ' .. tag) end
-                if observed.last_error then ImGui.Text(observed.last_error) end
-                if overlay and ImGui.Button(observed.enabled and 'NPC-Erfassung stoppen' or 'NPC-Erfassung starten') then
-                    local toggled=pcall(npcProbe.enable,not observed.enabled)
-                    if not toggled then npcProbeError='NPC-Erfassung konnte nicht umgeschaltet werden' end
-                end
-            end
-        end
-        if npcProbeError then ImGui.Text(npcProbeError) end
-        if overlay then
-            if ImGui.Button('V-Position aus Spiel lesen') then
-                local ok, value = pcall(function()
-                    local player = Game.GetPlayer()
-                    if not player then return 'Kein geladener Spielstand' end
-                    local p = player:GetWorldPosition()
-                    return string.format('X %.1f / Y %.1f / Z %.1f', p.x, p.y, p.z)
-                end)
-                position = ok and value or 'Spiel-API nicht verfuegbar'
-            end
-            if pending then
-                if ImGui.Button('Anfrage erneut senden') then writePending() end
-            elseif connected and state then
-                if ImGui.Button('Kontakt helfen (+15)') then queue('civilian_helped') end
-                if ImGui.Button('Kontakt schaedigen (-20)') then queue('civilian_harmed') end
-                if ImGui.Button('Lieferung untersuchen') then queue('shipment_investigated') end
-                if ImGui.Button('Klinik aufdecken') then queue('clinic_discovered') end
-                if lastEvent and ImGui.Button('Letztes Ereignis wiederholen') then queue(lastEvent) end
-                if ImGui.Button('Status vom Kern laden') then queue(false) end
-            else
-                if ImGui.Button('Status vom Kern laden') then queue(false) end
-            end
-            if ImGui.Button('Fenster ausblenden') then visible = false end
-        else
-            ImGui.Text('Zum Bedienen das CET-Overlay oeffnen.')
-        end
-        if injuryTest then
-            local ok,err=pcall(injuryTest.draw,overlay)
-            if not ok then injuryTestError=tostring(err) end
-        else
-            ImGui.Text('Nativer Verletzungstest nicht geladen')
-        end
-        if injuryTestError then ImGui.Text('Verletzungstest-Fehler: '..injuryTestError) end
-        ImGui.Separator()
-        ImGui.Text(message)
+        if encounterError then ImGui.Text('Nemesis-Adapter: '..encounterError) end
+        if debugTools and injuryTest then injuryTest.draw(overlay) end
     end
     ImGui.End()
 end)
 registerForEvent('onShutdown',function()
+    if encounters then pcall(encounters.cleanup,'shutdown') end
     if injuryTest then pcall(injuryTest.cleanup) end
 end)
 return {version = version}

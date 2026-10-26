@@ -16,6 +16,7 @@ def install(game: Path, backup_root: Path, source: Path) -> dict:
         raise ValueError('Active CET installation not found; no framework files changed')
     files = ('demo.lua', 'init.lua') + (('npc_probe.lua',) if (source / 'npc_probe.lua').is_file() else ())
     files += (('injury_test.lua',) if (source / 'injury_test.lua').is_file() else ())
+    files += (('encounters.lua',) if (source / 'encounters.lua').is_file() else ())
     for name in files:
         if not (source / name).is_file():
             raise ValueError('Missing packaged Lua file')

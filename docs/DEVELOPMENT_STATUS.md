@@ -1,5 +1,15 @@
 # Development and crash recovery status
 
+## Repository-only automatic Nemesis prototype — 2026-10-26
+
+- User replaced the manual spawn/injury/flee sequence with actual player-hit promotion. "Static" means a persistent Nemesis person with V-injury memory, not an immobile body.
+- Accepted LOD requirement: retain a physical body only where needed around V; otherwise simulate the person's position/state, preload the same person on reapproach, preserve identical appearance and never duplicate.
+- Development branch implements SQLite people/memories, direct hit capture and body-zone evidence, acknowledgement-gated native reaction requests, bounded traces/outbox, separate explicit-context IPC, and tested simulation/materialization state contracts.
+- Normal UI is automatic status without action buttons. Original actors are not cloned/deleted at promotion.
+- Full engine lifecycle remains a release gate: exact appearance reconstruction, view/occlusion adapter, actual rematerializer, game-load session binding, offscreen director and visible injury locomotion.
+- This work is not deployed. See [AUTOMATIC_NEMESIS.md](AUTOMATIC_NEMESIS.md) for exact implemented scope, tests and known gaps. No Windows runner or game interaction was performed.
+
+
 ## 2026-10-26 — Source research and failed crowd acceptance
 
 - User reports the latest three tests produced no reliable injury animation/escape. PR #11 policy synchronization and activation-edge wrapper binding are installed but have not passed gameplay acceptance.
