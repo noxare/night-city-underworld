@@ -84,3 +84,7 @@ https://github.com/CDPR-Modding-Documentation/Cyberpunk-Modding-Docs
 https://github.com/CDPR-Modding-Documentation/Cyberpunk-Scripts
 https://github.com/psiberx/cp2077-codeware
 https://github.com/maximegmd/CyberEngineTweaks
+
+
+## Quellenvergleich vor weiteren Engine-Experimenten
+Lies [MOD_SOURCE_RESEARCH.md](../MOD_SOURCE_RESEARCH.md). Vor einem neuen Hook oder Workaround mindestens einen passenden aktiven Mod-Codepfad und dessen Voraussetzungen prüfen; Revision, Lizenz und Grenzen festhalten. Kommentierte Experimente sind keine funktionierende Implementierung. Workspot-Posen nicht als frei navigierende Locomotion ausgeben. Jede neue Testserie benötigt korrelierte, dauerhafte und begrenzte NPC-Ablaufprotokolle sowie eine reproduzierbare Actor-Konfiguration. Nutzerfeedback zu fehlgeschlagenen Tests hat Vorrang vor gemeldeten Befehlen oder Mock-Erfolg.

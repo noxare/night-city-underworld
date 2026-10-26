@@ -1,5 +1,13 @@
 # Development and crash recovery status
 
+## 2026-10-26 — Source research and failed crowd acceptance
+
+- User reports the latest three tests produced no reliable injury animation/escape. PR #11 policy synchronization and activation-edge wrapper binding are installed but have not passed gameplay acceptance.
+- Cross-project source review completed: PDO, AMM, Real Talk, CyberScript and Codeware. Revision-pinned findings and the next engineering bundle are in [MOD_SOURCE_RESEARCH.md](MOD_SOURCE_RESEARCH.md).
+- No verified universal crowd limp/flee solution was found in the inspected paths. Existing code reveals multi-limb exceptions, competing workspot/hold ownership, explicit companion-role side effects and rigorous state readback.
+- Next work: durable per-test traces, a reproducible owned actor baseline, comparison against failing crowd templates, then a supported navigation/injury adapter. No further gameplay fix or logger deployment is claimed by this documentation update.
+
+
 ## Installed wounded-locomotion adapter package 0.0.5
 
 - Installed audit completed with actual resource matches and successful behavior JSON conversion; metadata inspection resolved woundedLocomotion_l_leg/r_leg wrapperName fields in ApplyAnimWrappersOnWeapon tasks, conditioned by WoundedLeftLeg/RightLeg. Exact installed identities and hashes: docs/INSTALLED_WOUNDED_LOCOMOTION.md.
