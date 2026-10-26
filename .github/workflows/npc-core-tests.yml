@@ -3,8 +3,15 @@ on:
   push:
     paths:
       - 'underworld/nemesis.py'
+      - 'underworld/nemesis_mailbox.py'
+      - 'mods/night_city_underworld/encounters.lua'
       - 'underworld/offscreen.py'
       - 'tests/test_nemesis_core.py'
+      - 'tests/test_nemesis_mailbox.py'
+      - 'tests/test_nemesis_recovery.py'
+      - 'tests/test_nemesis_scenario.py'
+      - 'tests/test_automatic_encounters.py'
+      - 'tests/lua_harness.py'
       - 'tests/test_offscreen.py'
       - '.github/workflows/npc-core-tests.yml'
   workflow_dispatch:
@@ -22,5 +29,11 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Check durable identities and offscreen simulation
-        run: python -m unittest tests.test_nemesis_core tests.test_offscreen -v
+      - name: Install real Lua test runtime
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y liblua5.4-0
+      - name: Check automatic capture, durable encounters and recovery
+        env:
+          PYTHONPATH: tests
+        run: python -m unittest test_nemesis_core test_nemesis_mailbox test_nemesis_recovery test_nemesis_scenario test_automatic_encounters test_offscreen -v
