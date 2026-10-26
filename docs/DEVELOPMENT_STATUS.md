@@ -1,3 +1,14 @@
+## 2026-10-26 — Offline continuation: automatic hit pipeline and recovery
+
+- User confirms Windows gaming PC/runner is intentionally off while away. This blocks installed-resource/game validation and deployment only. Independent implementation and hosted checks continue; no runner polling or user gameplay micro-tests needed.
+- Added developer-only `nemesis_mailbox.py` with mandatory save/timeline/load session, strict bounded JSON parsing, durable hit/body-ended/treatment dispatch and commit-before-response retry. It is not started/imported by the installed demo worker.
+- Added the automatic `encounters.lua` module based on PR #12: capture uses the actual hit actor and anatomical hit-shape evidence, leaves mixed/unavailable body zones unknown, and writes a bounded crash-recoverable outbox. Default is capture-only. No native Run/status fallback; original-actor reactions require an explicit record-scoped verified profile and cleanup ownership. No profile is supplied and no init/installer activation was added.
+- Added atomic explicit treatment to the existing person ledger. Treatment reduces recorded injury counts, recomputes plans, preserves identity/appearance/V memories, rejects death and pending spawn leases, and is replay-safe. No engine HP or visible healing is claimed.
+- Added a real-file scenario spanning hit, body release, game-time background travel, restart, same-person memory and fail-closed unverified appearance reconstruction. This proves core/IPC behavior, not REDengine gameplay.
+- Local final review: `PYTHONPATH=tests python -m unittest test_nemesis_core test_nemesis_mailbox test_nemesis_recovery test_nemesis_scenario test_automatic_encounters test_offscreen -v` — **47 passed**, including real Lua VM with mocked engine and actual SQLite/file IPC. `git diff --check` passed.
+- Extended independent hosted checks to include the new IPC/recovery/scenario and real Lua capture tests. Current tests/CI and delivery commit are recorded below after final review.
+- Next runtime gate remains installed hit API/body-zone verification, automatic save/load context, complete appearance reconstruction/native materializer and supported navigating injury gait. Gaming-PC installation deliberately remains pending while the runner is off.
+
 ## 2026-10-26 — Reviewed NPC foundations and diagnostic hardening
 
 - PR #13 reviewed, corrected and merged as `0bf586d`: nine local tests pass. Fixes include detached immutable coordinates, monotonic visibility transitions and safe numeric interpolation. This is an abstract offscreen primitive, not native navigation.
