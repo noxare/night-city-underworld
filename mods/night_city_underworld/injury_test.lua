@@ -1,5 +1,41 @@
 -- Controlled native-status experiment. Only our tagged, nonpersistent crowd clone is mutable.
-local Test={message='Bereit: generischen Crowd-NPC ansehen',age=0,id=nil}
+local Test={message='Bereit: generischen Crowd-NPC ansehen',age=0,id=nil,
+    tracePath='injury-trace.jsonl',traceSequence=0,traceCount=0}
+local traceSession=tostring(os.time())..'-'..tostring({}):gsub('[^%w]','')
+local testSequence=0
+local function limited(value) return tostring(value):sub(1,256) end
+-- Two bounded files only, containing scalar snapshots rather than engine handles.
+-- Diagnostics must never prevent cleanup or movement, including on full disks.
+local function trace(kind,fields)
+    if Test.traceCount>=1024 then return end
+    local ok,err=pcall(function()
+        Test.traceSequence=Test.traceSequence+1;Test.traceCount=Test.traceCount+1
+        local row={schema_version=1,adapter='injury-test-0.0.6',session=traceSession,
+            test_id=Test.testID or 'none',sequence=Test.traceSequence,event=kind,
+            elapsed=Test.age,record=Test.record or 'unknown',intent=Test.intent or 'none'}
+        for k,v in pairs(fields or {}) do row[k]=v end
+        local raw=json.encode(row)..'\n'
+        if #raw>4096 then error('trace record exceeds budget') end
+        local existing=io.open(Test.tracePath,'rb')
+        local size=existing and existing:seek('end') or 0
+        if existing then existing:close() end
+        if size+#raw>262144 then
+            os.remove(Test.tracePath..'.previous')
+            assert(os.rename(Test.tracePath,Test.tracePath..'.previous'))
+        end
+        local file=assert(io.open(Test.tracePath,'ab'))
+        local written,writeErr=file:write(raw)
+        local closed,closeErr=file:close()
+        assert(written,writeErr);assert(closed,closeErr)
+    end)
+    if not ok then Test.traceError=limited(err) end
+end
+local function readEffect(side)
+    local ok,value=pcall(function()
+        return Game.GetStatusEffectSystem():HasStatusEffect(Test.id,TweakDBID.new('BaseStatusEffect.CrippledLeg'..side))
+    end)
+    return ok and type(value)=='boolean' and tostring(value) or 'unavailable'
+end
 local walk
 local move
 local restoreLegEffects
@@ -16,6 +52,7 @@ local function owned()
 end
 function Test.cleanup()
     local s=system()
+    trace('cleanup_requested')
     -- Reset only the owned clone, then delete even if a wrapper reset fails.
     pcall(function()
         local actor=owned()
@@ -23,6 +60,7 @@ function Test.cleanup()
     end)
     -- The tag is reserved exclusively for this module.
     s:DeleteTagged(tag)
+    trace('cleanup_complete')
     Test.id=nil;Test.age=0;Test.walkStarted=false;Test.command=nil;Test.origin=nil;Test.distance=0;Test.legEffects={};Test.intent='walk'
     Test.wrapperState=nil;Test.speed=nil;Test.lastPosition=nil;Test.commandAge=nil;Test.motionState=nil;Test.commandState=nil;Test.policyState=nil;Test.lastInjuredSide=nil
     Test.message='Test-NPC entfernt'
@@ -37,6 +75,8 @@ local function spawn()
     if not target or not target:IsNPC() or not target:IsCrowd() then
         error('Bitte einen generischen Crowd-NPC ansehen; keine Questfigur')
     end
+    testSequence=testSequence+1;Test.testID=traceSession..'-'..testSequence
+    Test.traceCount=0;Test.traceError=nil
     local record=target:GetRecordID()
     Test.record=tostring(record)
     if not TweakDB:GetRecord(record) then error('NPC-Datensatz nicht verfuegbar') end
@@ -49,8 +89,10 @@ local function spawn()
     spec.persistState=false;spec.persistSpawn=false
     spec.alwaysSpawned=false;spec.spawnInView=true;spec.active=true
     spec.tags={tag}
-    Test.id=s:CreateEntity(spec);Test.age=0;Test.walkStarted=false;Test.distance=0;Test.origin=nil;Test.legEffects={};Test.intent='walk'
+    trace('spawn_requested',{source_scope='crowd',appearance_capture='unsupported',template_capture='unsupported'})
+    Test.id=s:CreateEntity(spec);Test.age=0;Test.walkStarted=false;Test.attachedTraced=false;Test.readyCheckAfter=0;Test.distance=0;Test.origin=nil;Test.legEffects={};Test.intent='walk'
     Test.wrapperState=nil;Test.speed=nil;Test.lastInjuredSide=nil;Test.commandAge=nil;Test.motionState=nil
+    trace('spawn_created',{entity_id=limited(Test.id)})
     Test.message='Test-NPC angefordert; Spawn erfolgt asynchron. Automatische Entfernung nach 60 s.'
 end
 applyInjuryWrappers=function(actor)
@@ -66,7 +108,12 @@ applyInjuryWrappers=function(actor)
 end
 restoreLegEffects=function(actor)
     for side,active in pairs(Test.legEffects or {}) do
-        if active then StatusEffectHelper.ApplyStatusEffect(actor,TweakDBID.new('BaseStatusEffect.CrippledLeg'..side)) end
+        if active then
+            -- Avoid restarting a native pain reaction on every command transition.
+            if readEffect(side)~='true' then
+                StatusEffectHelper.ApplyStatusEffect(actor,TweakDBID.new('BaseStatusEffect.CrippledLeg'..side))
+            end
+        end
     end
     applyInjuryWrappers(actor)
 end
@@ -74,6 +121,7 @@ move=function(intent)
     local actor=owned()
     if not actor then error('Test-NPC noch nicht gespawnt') end
     local controller=actor:GetAIControllerComponent()
+    if not controller then error('Test-NPC KI noch nicht bereit') end
     if Test.command then controller:CancelCommand(Test.command);Test.command=nil end
     local position=actor:GetWorldPosition()
     local player=Game.GetPlayer()
@@ -106,12 +154,14 @@ move=function(intent)
     end)
     Test.policyState=policyOk and 'Bewegungspolicy aktualisiert' or 'Policyfehler: '..tostring(policyErr)
     Test.intent=intent
-    Test.wrapperBoundToCommand=false;Test.commandAge=0;Test.motionState='Ausfuehrung noch nicht bestaetigt';Test.diagnosticAfter=0
+    Test.wrapperBoundToCommand=false;Test.measurementErrorTraced=false;Test.commandAge=0;Test.motionState='Ausfuehrung noch nicht bestaetigt';Test.diagnosticAfter=0
+    Test.destination={x=position.x+dx*length,y=position.y+dy*length,z=position.z}
     Test.origin={x=position.x,y=position.y,z=position.z}
     Test.distance=0;Test.walkStarted=true;Test.lastPosition=nil;Test.speed=0
     -- Keep movement measurement alive even when the animation adapter fails.
     local ok,err=pcall(restoreLegEffects,actor)
     if not ok then Test.wrapperState='Wrapper-/Statuseffektfehler: '..tostring(err) end
+    trace('command_requested',{command_id=limited(command.id),policy=limited(Test.policyState),left_effect=readEffect('Left'),right_effect=readEffect('Right'),wrapper=limited(Test.wrapperState)})
     Test.message=intent=='flee' and (injured and 'Flucht-Laufbefehl + nativer Bein-Wrapper angefordert; Wirkung noch pruefen' or 'Unverletzte Flucht: Laufbefehl gesendet') or 'Gehbefehl gesendet; Bewegung wird gemessen'
 end
 walk=function()move('walk')end
@@ -121,32 +171,49 @@ local function effect(side,remove)
     local id=TweakDBID.new('BaseStatusEffect.CrippledLeg'..side)
     if not TweakDB:GetRecord(id) then error('Nativer Statuseffekt fehlt') end
     local effects=Game.GetStatusEffectSystem()
+    Test.legEffects=Test.legEffects or {}
+    -- The diagnostic adapter has a one-leg scope. Two native cripple effects can
+    -- immobilize actors even if only one animation wrapper is blended.
+    -- Remove only the opposite effect this adapter owns; never clear arbitrary AI.
+    local opposite=side=='Left' and 'Right' or 'Left'
+    if not remove and Test.legEffects[opposite] then
+        effects:RemoveStatusEffect(Test.id,TweakDBID.new('BaseStatusEffect.CrippledLeg'..opposite))
+        Test.legEffects[opposite]=false
+        trace('leg_replaced',{removed_side=opposite,new_side=side})
+    end
     if remove then effects:RemoveStatusEffect(Test.id,id)
     elseif not Test.command then StatusEffectHelper.ApplyStatusEffect(actor,id) end
-    Test.legEffects=Test.legEffects or {}
     Test.legEffects[side]=not remove
     if not remove then Test.lastInjuredSide=side end
     -- Replace our active movement command after every injury-state transition.
     if Test.command then move(Test.intent or 'walk') else applyInjuryWrappers(actor) end
+    trace('injury_transition',{side=side,removed=remove,left_effect=readEffect('Left'),right_effect=readEffect('Right')})
     Test.message=remove and 'Entfernung angefordert; Gangbild beobachten' or 'Nativer Beinstatuseffekt angefordert; Animation ist noch zu pruefen'
 end
 local function run(fn)
     local ok,err=pcall(fn)
-    if not ok then Test.message=tostring(err) end
+    if not ok then Test.message=tostring(err);trace('error',{message=limited(err)}) end
     print('[Underworld InjuryTest] '..Test.message)
 end
 function Test.update(delta)
     if not Test.id then return end
+    if type(delta)~='number' or delta~=delta or delta<0 or delta==math.huge then return end
     Test.age=Test.age+delta
     if Test.age>=60 or not Game.GetPlayer() then run(Test.cleanup);return end
-    if not Test.walkStarted and Test.age>1 then
+    if not Test.walkStarted and Test.age>1 and Test.age>=(Test.readyCheckAfter or 0) then
+        Test.readyCheckAfter=Test.age+.5
+        if Test.age>=10 then trace('readiness_timeout');run(Test.cleanup);return end
         local ok,actor=pcall(owned)
-        if ok and actor then run(walk) end
+        if ok and actor then
+            if not Test.attachedTraced then Test.attachedTraced=true;trace('actor_attached') end
+            run(walk)
+        elseif not ok then trace('actor_error',{message=limited(actor)}) end
     end
     if Test.commandAge then Test.commandAge=Test.commandAge+delta end
     if Test.origin then
         local ok,err=pcall(function()
             local actor=owned()
+            if not actor then trace('actor_unloaded');Test.cleanup();return end
             if actor then local p=actor:GetWorldPosition();local o=Test.origin
                 local last=Test.lastPosition
                 if last and delta>0 then
@@ -155,7 +222,7 @@ function Test.update(delta)
                 Test.lastPosition={x=p.x,y=p.y,z=p.z}
                 Test.distance=math.sqrt((p.x-o.x)^2+(p.y-o.y)^2+(p.z-o.z)^2)
                 if Test.commandAge>=Test.diagnosticAfter then
-                    Test.diagnosticAfter=Test.commandAge+1
+                    Test.diagnosticAfter=Test.commandAge+.5
                     local activeOk,active=pcall(function()
                         return AIbehaviorUniqueActiveCommandList.IsActionCommandById(actor:GetAIControllerComponent().activeCommands,Test.command.id)
                     end)
@@ -166,6 +233,9 @@ function Test.update(delta)
                         local bound,bindErr=pcall(applyInjuryWrappers,actor)
                         if not bound then Test.wrapperState='Wrapperfehler: '..tostring(bindErr) end
                     end
+                    local destination=Test.destination
+                    local remaining=math.sqrt((p.x-destination.x)^2+(p.y-destination.y)^2+(p.z-destination.z)^2)
+                    trace('movement_sample',{destination_distance=remaining,command_id=limited(Test.command.id),active=activeOk and tostring(active) or 'unavailable',x=p.x,y=p.y,z=p.z,distance=Test.distance,speed=Test.speed or 0,left_effect=readEffect('Left'),right_effect=readEffect('Right'),wrapper=limited(Test.wrapperState),role='unavailable',workspot='unavailable'})
                     Test.commandState=activeOk and (active and 'aktiv' or 'nicht aktiv') or 'Abfrage nicht verfuegbar'
                     local state=Test.distance>.25 and 'Bewegung gemessen; Gangart separat beurteilen'
                         or (Test.commandAge>=3 and 'Keine Bewegung bestaetigt: KI/Navigation pruefen' or 'Warte auf Bewegung')
@@ -176,7 +246,12 @@ function Test.update(delta)
                 end
             end
         end)
-        if not ok then Test.motionState='Messfehler: '..tostring(err) end
+        if not ok then
+            Test.motionState='Messfehler: '..tostring(err)
+            if not Test.measurementErrorTraced then
+                Test.measurementErrorTraced=true;trace('measurement_error',{message=limited(err)})
+            end
+        end
     end
 end
 function Test.draw(overlay)
@@ -184,6 +259,8 @@ function Test.draw(overlay)
     ImGui.Text('Nativer Verletzungstest · nur eigener Crowd-Klon')
     ImGui.Text('Nur auf freier, ebener Flaeche starten. Kein Kampf wird ausgeloest.')
     ImGui.Text(Test.message)
+    if Test.traceError then ImGui.Text('Ablaufprotokoll-Fehler: '..Test.traceError) end
+    if Test.testID then ImGui.Text('Test-ID: '..Test.testID) end
     if Test.record then ImGui.Text('NPC-Vorlage: '..Test.record) end
     if Test.policyState then ImGui.Text(Test.policyState) end
     if Test.commandState then ImGui.Text('Bewegungsbefehl: '..Test.commandState) end

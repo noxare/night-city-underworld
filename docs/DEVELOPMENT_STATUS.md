@@ -1,10 +1,14 @@
-## 2026-10-26 — Offscreen identity simulation (development branch)
+## 2026-10-26 — Reviewed NPC foundations and diagnostic hardening
 
-- New `underworld/offscreen.py`: immutable NPC identity/appearance token, offscreen straight-line position advance, time-reversal rejection, catch-up budget and visible-to-offscreen reconciliation.
-- `tests/test_offscreen.py`: deterministic arrival/replay, no visible movement, last-observed position, time cap and invalid input cases.
-- Status: **implemented on feature branch; tests not yet independently executed; not merged/installed/in-game confirmed**.
-- This is not native NPC capture, navigation, persistent save identity, or a verified respawn preserving appearance. No ordinary actor or game files are modified.
-- Next: run scoped CI and review; add save/timeline identity registry and injury-dependent offscreen decisions before developing verified spawn/visibility adapter.
+- PR #13 reviewed, corrected and merged as `0bf586d`: nine local tests pass. Fixes include detached immutable coordinates, monotonic visibility transitions and safe numeric interpolation. This is an abstract offscreen primitive, not native navigation.
+- Extracted the inert SQLite identity/lifecycle core from draft PR #12, without its automatic Lua adapter, mailbox or installer activation. Durable identity, V-injury memories, save/timeline isolation, injury-dependent abstract travel and one-body spawn leases are implemented. Identical visual tokens are retained; actual appearance reconstruction is not established.
+- Review hardened SQLite read/modify/write transactions, global budgets, future-schema rejection, replay-safe game-time advancement and lease expiry. Coordinator additionally rejected pre-reservation acknowledgements and fixed large-coordinate movement. Fifteen core tests pass, including independent SQLite connection races and restart/replay.
+- Owned-clone injury diagnostics now write bounded correlated JSONL traces, report destination distance/effect readback and clean up on unload/readiness timeout. Test-side changes remove the previous owned leg effect when switching legs and avoid reapplying an already-present effect. This addresses a plausible multi-leg immobilization condition; it does not establish the root cause of failed crowd gait.
+- Local scoped validation: `PYTHONPATH=tests python -m unittest test_nemesis_core test_offscreen test_native_injury test_cet_installer test_cet_rules -v` — **31 passed**. Lua tests use a real Lua VM with mocked engine objects.
+- Three task-scoped specialists used for animation, simulation review and identity review; no local/Ollama worker availability claimed.
+- Delivery boundary: Git fetch works, shell push lacks credentials; changes are delivered through the connected GitHub tool. The Actions runs API confirms Windows core/install jobs queued (including main install run 40350596942); no current Windows runner heartbeat, installation or new in-game result has been verified. Added an independent Ubuntu NPC-core workflow to avoid blocking pure simulation checks on the Windows runner.
+- PR #12 remains draft: do not enable automatic mutation until installed hit-shape provenance, save-load context, visibility ownership, complete appearance reconstruction/native materializer and navigating injured gait are established.
+- Next executable runtime action: run the existing Windows core/install workflows on the reviewed main commit, inspect owned files/worker heartbeat and collect correlated owned-actor traces; compare actual template/graph activation for healthy and injured movement. No further user micro-test requested.
 
 # Development and crash recovery status
 
