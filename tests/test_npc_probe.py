@@ -64,7 +64,7 @@ assert(failed.status().hit_observer_registered==false)
 assert(failed.status().last_error~=nil)
 ''')
 
-    def test_entrypoint_exposes_opt_in_controls_without_changing_bridge_version(self):
+    def test_entrypoint_uses_automatic_status_without_manual_injury_buttons(self):
         try: lua=LuaHarness()
         except RuntimeError as error: self.skipTest(str(error))
         self.addCleanup(lua.close)
@@ -73,6 +73,7 @@ assert(failed.status().last_error~=nil)
         lua.run('''
 package.path=ROOT..'/?.lua;'..package.path
 local callbacks,clicked,text={},{},{}
+local buttons=0
 registerForEvent=function(name,fn)callbacks[name]=fn end
 registerHotkey=function()end
 ObserveAfter=function()end
@@ -84,12 +85,13 @@ io.open=function(_,mode)
 end
 ImGuiWindowFlags={AlwaysAutoResize=0}
 ImGui={Begin=function()return true end,End=function()end,Separator=function()end,
- Text=function(value)text[#text+1]=value end,Button=function(label)return clicked==label end}
+ Text=function(value)text[#text+1]=value end,Button=function(label)buttons=buttons+1;return clicked==label end}
 assert(dofile(ROOT..'/init.lua').version=='0.0.2')
 callbacks.onInit();callbacks.onOverlayOpen()
 clicked='NPC-Erfassung starten';callbacks.onDraw();clicked=nil
 callbacks.onUpdate(.5);text={};callbacks.onDraw()
 local shown=table.concat(text,';')
-assert(shown:find('NPC-Meilenstein Build 0.0.5',1,true))
-assert(shown:find('NPC-Erfassung: aktiv',1,true))
+assert(shown:find('Underworld Build 0.1.0-dev',1,true))
+assert(shown:find('Automatische Trefferreaktion',1,true))
+assert(buttons==0)
 ''')

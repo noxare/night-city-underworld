@@ -29,6 +29,15 @@ class CetInstallerTest(unittest.TestCase):
         self.assertEqual((self.target / 'init.lua').read_text(), 'new-init.lua')
         self.assertEqual((self.target / 'demo-events.jsonl').read_text(), 'existing journal')
 
+    def test_automatic_adapter_is_packaged_without_touching_runtime_state(self):
+        (self.source / 'encounters.lua').write_text('automatic')
+        self.target.mkdir(parents=True)
+        (self.target / 'nemesis-outbox.json').write_text('preserved')
+        receipt = install(self.game, self.root / 'backups', self.source)
+        self.assertEqual((self.target / 'encounters.lua').read_text(), 'automatic')
+        self.assertEqual((self.target / 'nemesis-outbox.json').read_text(), 'preserved')
+        self.assertIn('encounters.lua', [row['name'] for row in receipt['files']])
+
     def test_missing_cet_does_not_install(self):
         (self.game / 'bin/x64/version.dll').unlink()
         with self.assertRaises(ValueError):

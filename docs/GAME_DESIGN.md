@@ -203,3 +203,12 @@ interruption/resumption and recovery. In particular, normal running during a
 persistent leg injury fails acceptance even if an earlier idle pain reaction was
 visible. A successful manual Walk command does not prove the flee integration.
 This requirement is not yet verified in the live game adapter.
+
+
+## Automatic promotion and simulation/materialization — confirmed 2026-10-26
+
+A player shooting an eligible NPC automatically establishes a fixed Nemesis person and the causal memory "V injured me". Identify the actual hit actor and anatomical evidence; do not require manual spawn/limb/flee buttons. "Static" means durable personhood, not frozen locomotion. Do not treat an archetype record as an individual.
+
+The physical body exists only where needed around V. Outside that scope, simulate position, injuries, intent and relationships. On reapproach, preload that SAME person before a visible encounter, with the SAME face, body, clothing and supported visual/equipment state. Store the concrete reconstruction data; no random substitute is acceptable. Preserve death, injuries and memory, protect quests and prevent duplicate bodies. Exact visual reconstruction and view-driven engine LOD are explicit capabilities to verify, not inferred from sharing a record.
+
+Initial implementation and release gates: [AUTOMATIC_NEMESIS.md](AUTOMATIC_NEMESIS.md).
