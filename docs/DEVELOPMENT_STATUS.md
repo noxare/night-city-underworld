@@ -1,3 +1,12 @@
+## 2026-10-26 — Bounded offscreen director and real Lua/IPC integration
+
+- PR #15 merged as `28db377`; 47-test hosted workflow 40369562973 passed including real Lua runtime setup. Automatic capture module remains unactivated; no native reaction profile is supplied.
+- Added `NemesisDirector`: explicit game-time ticks, supplied destinations, namespace/simulated-only ownership, sorted fair scheduling, at most 64 attempts per tick, bounded population read and per-person failure isolation. Durable per-person clocks preserve replay/restart safety. No wall clock, timers, daemon or fabricated routes/navmesh.
+- Added a real Lua -> real files -> Python mailbox -> SQLite -> director integration test. Mocked engine hit actor is preserved without crosshair lookup; unload transfers last position; injured travel advances; explicit treatment restores abstract speed while preserving appearance token and V memories. Native engine calls remain mocked, so no gameplay claim follows.
+- Local checks: seven director tests plus the real Lua/file pipeline test passed; `git diff --check` passed. Prior 47 scoped tests passed before this increment. Hosted workflow extended to all 55 relevant tests.
+- Limits: scheduler cursor is process-local (fair ordering resets on restart); first simulation tick anchors time without moving; 3600-second per-person catchup cap remains. Caller must supply verified game time and destinations. Actual game save/load, visibility, gait/navigation and exact appearance re-materialization still require native adapters/evidence.
+- Gaming PC runner is intentionally off. No new installation or user game test requested. Continue repository work independently; runtime acceptance remains a later coherent package.
+
 ## 2026-10-26 — Offline continuation: automatic hit pipeline and recovery
 
 - User confirms Windows gaming PC/runner is intentionally off while away. This blocks installed-resource/game validation and deployment only. Independent implementation and hosted checks continue; no runner polling or user gameplay micro-tests needed.
