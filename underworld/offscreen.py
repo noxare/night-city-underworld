@@ -20,10 +20,25 @@ class PersistentNPC:
     last_tick: float
     visible: bool = False
 
+    def __post_init__(self):
+        # Frozen dataclasses do not freeze nested caller-owned lists.
+        object.__setattr__(self, "position", _point(self.position))
+        object.__setattr__(self, "destination", _point(self.destination))
+        validate(self)
+
+
+def _finite_number(value):
+    if type(value) not in (float, int):
+        return False
+    try:
+        return math.isfinite(value)
+    except OverflowError:
+        return False
+
 
 def _point(value):
     if (not isinstance(value, (tuple, list)) or len(value) != 2
-            or any(type(x) not in (float, int) or not math.isfinite(x) for x in value)):
+            or any(not _finite_number(x) for x in value)):
         raise ValueError("position must be finite two-dimensional coordinates")
     return (float(value[0]), float(value[1]))
 
@@ -36,9 +51,9 @@ def validate(npc):
             raise ValueError("missing stable identity or appearance")
     _point(npc.position)
     _point(npc.destination)
-    if type(npc.speed_mps) not in (int, float) or not math.isfinite(npc.speed_mps) or not 0 <= npc.speed_mps <= MAX_SPEED:
+    if not _finite_number(npc.speed_mps) or not 0 <= npc.speed_mps <= MAX_SPEED:
         raise ValueError("invalid speed")
-    if type(npc.last_tick) not in (int, float) or not math.isfinite(npc.last_tick):
+    if not _finite_number(npc.last_tick) or npc.last_tick < 0:
         raise ValueError("invalid simulation timestamp")
     if type(npc.visible) is not bool:
         raise ValueError("invalid visibility")
@@ -51,7 +66,7 @@ def simulate_to(npc: PersistentNPC, timestamp: float) -> PersistentNPC:
     belong to the engine adapter and must first reconcile the observed position.
     """
     validate(npc)
-    if type(timestamp) not in (int, float) or not math.isfinite(timestamp) or timestamp < npc.last_tick:
+    if not _finite_number(timestamp) or timestamp < npc.last_tick:
         raise ValueError("invalid or regressing timestamp")
     if npc.visible:
         return npc  # Never teleport a visible entity or consume time on its behalf.
@@ -59,9 +74,11 @@ def simulate_to(npc: PersistentNPC, timestamp: float) -> PersistentNPC:
     x, y = _point(npc.position)
     tx, ty = _point(npc.destination)
     distance = math.hypot(tx - x, ty - y)
+    if not math.isfinite(distance):
+        raise ValueError("movement overflow")
     step = min(distance, delta * npc.speed_mps)
     position = (tx, ty) if distance == 0 or step == distance else (
-        x + (tx - x) * step / distance, y + (ty - y) * step / distance)
+        x + ((tx - x) / distance) * step, y + ((ty - y) / distance) * step)
     if not all(math.isfinite(v) for v in position):
         raise ValueError("movement overflow")
     return replace(npc, position=position, last_tick=float(timestamp))
@@ -70,7 +87,7 @@ def simulate_to(npc: PersistentNPC, timestamp: float) -> PersistentNPC:
 def leave_view(npc: PersistentNPC, observed_position, timestamp: float) -> PersistentNPC:
     """Record last engine-observed position as NPC leaves V's visibility."""
     validate(npc)
-    if type(timestamp) not in (int, float) or not math.isfinite(timestamp) or timestamp < npc.last_tick:
+    if not _finite_number(timestamp) or timestamp < npc.last_tick:
         raise ValueError("invalid transition timestamp")
     return replace(npc, position=_point(observed_position), last_tick=float(timestamp), visible=False)
 
@@ -78,4 +95,4 @@ def leave_view(npc: PersistentNPC, observed_position, timestamp: float) -> Persi
 def enter_view(npc: PersistentNPC, timestamp: float) -> PersistentNPC:
     """Return a spawn candidate; caller must validate safe spawn and quest guards."""
     updated = simulate_to(npc, timestamp)
-    return replace(updated, visible=True)
+    return replace(updated, visible=True, last_tick=float(timestamp))
