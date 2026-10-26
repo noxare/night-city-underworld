@@ -1,3 +1,11 @@
+## 2026-10-26 — Offscreen identity simulation (development branch)
+
+- New `underworld/offscreen.py`: immutable NPC identity/appearance token, offscreen straight-line position advance, time-reversal rejection, catch-up budget and visible-to-offscreen reconciliation.
+- `tests/test_offscreen.py`: deterministic arrival/replay, no visible movement, last-observed position, time cap and invalid input cases.
+- Status: **implemented on feature branch; tests not yet independently executed; not merged/installed/in-game confirmed**.
+- This is not native NPC capture, navigation, persistent save identity, or a verified respawn preserving appearance. No ordinary actor or game files are modified.
+- Next: run scoped CI and review; add save/timeline identity registry and injury-dependent offscreen decisions before developing verified spawn/visibility adapter.
+
 # Development and crash recovery status
 
 ## 2026-10-26 — Source research and failed crowd acceptance
