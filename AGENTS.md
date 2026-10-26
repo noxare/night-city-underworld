@@ -13,3 +13,5 @@ Use docs/agents/COORDINATION.md for conditional specialist routing, handoffs and
 Respect CD PROJEKT RED fan-content policies, license compatibility and third-party assets; no unauthorized copying.
 
 Platform policy: prioritize Windows x64 and a working Cyberpunk 2077 integration. Native macOS porting is deferred until the Windows mod is playable and stable. Keep core rules portable when practical but do not spend development time on speculative macOS engine adapters.
+
+Offline gaming-PC policy: an intentionally stopped Windows runner blocks only installation and installed/game validation. Continue independent repository implementation, scoped local tests and hosted core CI; do not repeatedly poll the runner or request gameplay micro-tests while the user is away. Preserve the pending deployment boundary explicitly.
