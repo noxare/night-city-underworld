@@ -4,12 +4,15 @@ on:
     paths:
       - 'underworld/nemesis.py'
       - 'underworld/nemesis_mailbox.py'
+      - 'underworld/nemesis_director.py'
       - 'mods/night_city_underworld/encounters.lua'
       - 'underworld/offscreen.py'
       - 'tests/test_nemesis_core.py'
       - 'tests/test_nemesis_mailbox.py'
       - 'tests/test_nemesis_recovery.py'
       - 'tests/test_nemesis_scenario.py'
+      - 'tests/test_nemesis_director.py'
+      - 'tests/test_nemesis_lua_pipeline.py'
       - 'tests/test_automatic_encounters.py'
       - 'tests/lua_harness.py'
       - 'tests/test_offscreen.py'
@@ -36,4 +39,4 @@ jobs:
       - name: Check automatic capture, durable encounters and recovery
         env:
           PYTHONPATH: tests
-        run: python -m unittest test_nemesis_core test_nemesis_mailbox test_nemesis_recovery test_nemesis_scenario test_automatic_encounters test_offscreen -v
+        run: python -m unittest test_nemesis_core test_nemesis_mailbox test_nemesis_recovery test_nemesis_scenario test_nemesis_director test_nemesis_lua_pipeline test_automatic_encounters test_offscreen -v
