@@ -43,3 +43,46 @@ class OffscreenTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             enter_view(actor(), -1)
         self.assertEqual(original.position, (0., 0.))
+
+    def test_coordinates_are_detached_from_mutable_caller_inputs(self):
+        position, destination = [0., 0.], [30., 40.]
+        npc = actor(position=position, destination=destination)
+        position[0] = 999
+        destination[1] = 999
+        self.assertEqual(npc.position, (0., 0.))
+        self.assertEqual(npc.destination, (30., 40.))
+
+    def test_visible_reentry_advances_transition_watermark_without_moving(self):
+        visible = enter_view(actor(), 10)
+        refreshed = enter_view(visible, 100)
+        self.assertEqual(refreshed.position, visible.position)
+        self.assertEqual(refreshed.last_tick, 100)
+        with self.assertRaises(ValueError):
+            leave_view(refreshed, (0., 0.), 20)
+        self.assertEqual(enter_view(refreshed, 100), refreshed)
+
+    def test_invalid_records_rejected_at_construction(self):
+        for changes in ({'last_tick': -1}, {'visible': 1},
+                        {'speed_mps': True}, {'npc_id': ''}):
+            with self.subTest(changes=changes), self.assertRaises(ValueError):
+                actor(**changes)
+
+    def test_extreme_numbers_fail_cleanly_without_mutation(self):
+        original = actor()
+        enormous = 10 ** 1000
+        for changes in ({"position": (enormous, 0)}, {"last_tick": enormous},
+                        {"speed_mps": enormous}):
+            with self.subTest(changes=tuple(changes)), self.assertRaises(ValueError):
+                actor(**changes)
+        for operation in (lambda: simulate_to(original, enormous),
+                          lambda: leave_view(original, (0, 0), enormous)):
+            with self.assertRaises(ValueError):
+                operation()
+        extreme = actor(position=(-1e308, 0), destination=(1e308, 0))
+        with self.assertRaisesRegex(ValueError, "movement overflow"):
+            simulate_to(extreme, 10)
+        self.assertEqual(original.position, (0., 0.))
+
+    def test_large_finite_route_does_not_overflow_intermediate_product(self):
+        result = simulate_to(actor(destination=(1e308, 0)), 100)
+        self.assertEqual(result.position, (200., 0.))
